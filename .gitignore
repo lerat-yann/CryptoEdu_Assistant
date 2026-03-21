@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Environnement
+.env
+
+# ChromaDB
+chroma_data/
+
+# Notes générées
+notes_crypto/*.md
+notes_crypto/*.json
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+.env
+__pycache__/
+*.pyc
+chroma_db/

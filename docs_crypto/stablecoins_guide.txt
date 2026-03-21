@@ -1,0 +1,61 @@
+# Les Stablecoins — Guide Éducatif pour Débutants
+
+## Qu'est-ce qu'un stablecoin ?
+
+Un stablecoin est une cryptomonnaie conçue pour maintenir une valeur stable, généralement indexée sur une monnaie traditionnelle comme le dollar américain (USD) ou l'euro (EUR). Contrairement au Bitcoin ou à l'Ethereum dont le prix fluctue fortement, un stablecoin vise à toujours valoir environ 1 dollar (ou 1 euro selon l'index).
+
+L'analogie : si le Bitcoin est comme une action en bourse (son prix monte et descend selon l'offre et la demande), un stablecoin est comme un jeton de casino qui représente toujours 1 dollar — sa valeur ne change pas (ou très peu).
+
+## Les différents types de stablecoins
+
+### Stablecoins adossés à des réserves (fiat-backed)
+- **Principe** : chaque stablecoin en circulation est garanti par 1 dollar (ou équivalent) détenu dans un compte bancaire ou en bons du Trésor.
+- **Exemples** : USDT (Tether), USDC (Circle), BUSD (Binance USD)
+- **Avantage** : mécanisme simple et compréhensible.
+- **Risque** : il faut faire confiance à l'émetteur pour qu'il détienne réellement les réserves. Tether a été critiqué pour le manque de transparence de ses réserves.
+
+### Stablecoins adossés à des cryptomonnaies (crypto-backed)
+- **Principe** : garantis par d'autres cryptomonnaies mises en collatéral, avec un système de sur-collatéralisation (on dépose plus de valeur que le stablecoin émis).
+- **Exemple** : DAI (MakerDAO) — pour émettre 100 DAI, il faut déposer environ 150$ d'Ethereum en collatéral.
+- **Avantage** : décentralisé, pas besoin de faire confiance à une entreprise.
+- **Risque** : si le collatéral crypto chute brutalement, le stablecoin peut perdre son ancrage (depeg).
+
+### Stablecoins algorithmiques
+- **Principe** : maintiennent leur stabilité par des mécanismes automatiques (algorithmes) qui ajustent l'offre en circulation.
+- **Exemple historique** : UST (TerraUSD) — a perdu son ancrage en mai 2022, causant des pertes de dizaines de milliards de dollars.
+- **Avantage** : pas besoin de réserves.
+- **Risque** : très élevé. L'effondrement de Terra/UST a montré que ce modèle peut échouer de manière catastrophique.
+
+## À quoi servent les stablecoins ?
+
+1. **Trading** : les traders les utilisent pour « garer » leurs profits en valeur stable sans convertir en euros ou dollars (ce qui impliquerait des frais bancaires et des délais).
+2. **Transferts internationaux** : envoyer des USDT d'un pays à un autre est rapide et peu coûteux comparé aux virements bancaires internationaux.
+3. **DeFi (finance décentralisée)** : les stablecoins sont le carburant de la DeFi — prêts, emprunts, fourniture de liquidité.
+4. **Protection contre la volatilité** : dans les pays à forte inflation, les stablecoins offrent un accès au dollar numérique.
+
+## Risques des stablecoins
+
+- **Risque de depeg** : un stablecoin peut perdre son ancrage à 1 dollar. C'est arrivé à UST (effondrement total) et temporairement à USDC (mars 2023, après la faillite de Silicon Valley Bank).
+- **Risque réglementaire** : les régulateurs du monde entier travaillent sur l'encadrement des stablecoins. En Europe, le règlement MiCA impose des exigences strictes aux émetteurs.
+- **Risque de contrepartie** : pour les stablecoins centralisés (USDT, USDC), vous dépendez de la solvabilité et de l'honnêteté de l'émetteur.
+- **Gel de fonds** : les émetteurs centralisés peuvent geler des adresses sur ordre des autorités.
+
+## Les principaux stablecoins en 2025-2026
+
+| Stablecoin | Émetteur | Type | Capitalisation approximative |
+|-----------|----------|------|------------------------------|
+| USDT | Tether | Fiat-backed (USD) | ~140 milliards $ |
+| USDC | Circle | Fiat-backed (USD) | ~50 milliards $ |
+| DAI | MakerDAO | Crypto-backed | ~5 milliards $ |
+| FDUSD | First Digital | Fiat-backed (USD) | ~3 milliards $ |
+
+## Point de vigilance pour les débutants
+
+Les stablecoins ne sont PAS sans risque. Ils sont plus stables que le Bitcoin, mais ils ne sont pas garantis par un État ou une banque centrale. Ne confondez pas « stable » avec « sans risque ».
+
+Avant d'utiliser un stablecoin, vérifiez :
+1. Qui est l'émetteur et est-il régulé ?
+2. Les réserves sont-elles auditées régulièrement ?
+3. Le stablecoin est-il compatible avec le cadre réglementaire de votre pays (MiCA en Europe) ?
+
+Source : Ce document est un guide éducatif compilé à partir de sources publiques (CoinGecko, MakerDAO, Circle, AMF).

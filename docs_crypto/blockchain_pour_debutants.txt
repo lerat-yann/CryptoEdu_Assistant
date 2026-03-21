@@ -1,0 +1,50 @@
+# La Blockchain pour Débutants — Guide Éducatif
+
+## Qu'est-ce que la blockchain ?
+
+La blockchain (ou « chaîne de blocs ») est une technologie de stockage et de transmission d'informations. Elle fonctionne comme un grand registre numérique partagé entre des milliers d'ordinateurs dans le monde. Chaque transaction y est enregistrée de manière permanente et transparente.
+
+L'analogie la plus simple : imaginez un cahier de comptes que tout le monde peut lire, mais que personne ne peut modifier une fois qu'une page est écrite. Chaque nouvelle page (un « bloc ») est attachée à la précédente avec un cadenas mathématique (le « hash »). Si quelqu'un essaie de modifier une page ancienne, tous les cadenas suivants deviennent invalides et le réseau rejette la modification.
+
+## Comment fonctionne une transaction blockchain ?
+
+1. Alice veut envoyer 1 Bitcoin à Bob.
+2. La transaction est diffusée sur le réseau de milliers d'ordinateurs (les « nœuds »).
+3. Les nœuds vérifient que Alice possède bien ce Bitcoin et que la transaction est valide.
+4. La transaction est regroupée avec d'autres dans un « bloc ».
+5. Le bloc est validé par un mécanisme de consensus (Proof of Work pour Bitcoin, Proof of Stake pour Ethereum 2.0).
+6. Le bloc validé est ajouté à la chaîne existante de manière permanente.
+7. Bob reçoit son Bitcoin. La transaction est irréversible.
+
+## Les mécanismes de consensus
+
+### Proof of Work (preuve de travail)
+Utilisé par Bitcoin. Des ordinateurs spécialisés (les « mineurs ») résolvent des problèmes mathématiques complexes pour valider les blocs. Le premier à trouver la solution gagne une récompense en Bitcoin. Ce mécanisme consomme beaucoup d'énergie.
+
+### Proof of Stake (preuve d'enjeu)
+Utilisé par Ethereum depuis 2022. Au lieu de résoudre des problèmes mathématiques, les validateurs mettent en jeu (« stakent ») leurs propres cryptomonnaies comme garantie. Plus ils mettent en jeu, plus ils ont de chances d'être choisis pour valider un bloc. Ce mécanisme consomme beaucoup moins d'énergie.
+
+## Blockchain publique vs privée
+
+Une blockchain publique (comme Bitcoin ou Ethereum) est ouverte à tous : n'importe qui peut lire les transactions, devenir validateur, ou utiliser le réseau. Il n'y a pas d'autorité centrale.
+
+Une blockchain privée (comme Hyperledger) est contrôlée par une organisation. Seuls les participants autorisés peuvent lire ou écrire des transactions. Elle est utilisée par des entreprises pour des usages internes (traçabilité, supply chain).
+
+## Les limites et risques de la blockchain
+
+- **Irréversibilité** : une erreur de transaction ne peut pas être annulée. Si vous envoyez des cryptomonnaies à la mauvaise adresse, elles sont perdues.
+- **Scalabilité** : les blockchains publiques traitent un nombre limité de transactions par seconde (Bitcoin : ~7 tx/s, Ethereum : ~15-30 tx/s), bien que des solutions de « couche 2 » (Layer 2) améliorent cela.
+- **Consommation énergétique** : le Proof of Work consomme énormément d'énergie. Le Proof of Stake est une alternative plus écologique.
+- **Complexité technique** : la gestion des clés privées, des adresses et des transactions requiert un minimum de connaissances techniques.
+- **Régulation** : le cadre réglementaire varie selon les pays et évolue rapidement.
+
+## Les cas d'usage au-delà des cryptomonnaies
+
+La blockchain ne sert pas uniquement aux cryptomonnaies :
+- **Finance décentralisée (DeFi)** : prêts, emprunts et échanges sans intermédiaire bancaire.
+- **NFT (Non-Fungible Tokens)** : certificats numériques de propriété pour l'art, la musique, les jeux vidéo.
+- **Traçabilité** : suivi de produits dans la chaîne logistique (alimentaire, luxe, pharmaceutique).
+- **Identité numérique** : gestion décentralisée de l'identité sans dépendance à un tiers.
+- **Vote électronique** : systèmes de vote transparents et vérifiables.
+
+Source : Ce document est un guide éducatif compilé à partir de sources publiques (La Finance pour Tous, Ethereum.org, Bitcoin.org).

@@ -1,0 +1,85 @@
+# Glossaire Crypto pour Débutants
+
+## Termes fondamentaux
+
+**Blockchain** : Registre numérique distribué et immuable qui enregistre toutes les transactions. Chaque bloc contient un ensemble de transactions et est lié au bloc précédent par un hash cryptographique.
+
+**Bitcoin (BTC)** : Première cryptomonnaie, créée en 2009 par Satoshi Nakamoto. Fonctionne sur sa propre blockchain avec un mécanisme de Proof of Work. Offre limitée à 21 millions d'unités.
+
+**Ethereum (ETH)** : Deuxième cryptomonnaie par capitalisation. Sa blockchain permet l'exécution de « smart contracts » (contrats intelligents) et héberge la plupart des applications décentralisées (dApps).
+
+**Altcoin** : Toute cryptomonnaie autre que le Bitcoin. Le terme vient de « alternative coin ». Exemples : Ethereum, Solana, Cardano, Polygon.
+
+**Token** : Unité numérique créée sur une blockchain existante (contrairement à une « coin » qui possède sa propre blockchain). Exemple : USDT est un token sur Ethereum.
+
+**Smart contract (contrat intelligent)** : Programme informatique qui s'exécute automatiquement sur une blockchain lorsque des conditions prédéfinies sont remplies. Pas besoin d'intermédiaire.
+
+## Sécurité et clés
+
+**Clé privée** : Code secret qui permet de signer des transactions et de prouver la propriété de vos cryptomonnaies. Ne la partagez JAMAIS. La perdre signifie perdre définitivement l'accès à vos fonds.
+
+**Clé publique** : Adresse dérivée de votre clé privée que vous pouvez partager pour recevoir des cryptomonnaies. C'est comme votre numéro de compte bancaire — visible par tous.
+
+**Seed phrase (phrase de récupération)** : Suite de 12 ou 24 mots aléatoires qui permet de restaurer l'accès à un portefeuille. C'est la sauvegarde ultime de votre clé privée. Écrivez-la sur papier et gardez-la en lieu sûr. Ne la stockez JAMAIS en photo ou sur un ordinateur connecté.
+
+**2FA (Authentification à deux facteurs)** : Couche de sécurité supplémentaire qui exige un deuxième code (souvent via une application comme Google Authenticator) en plus du mot de passe.
+
+## Portefeuilles (Wallets)
+
+**Wallet (portefeuille)** : Logiciel ou appareil qui stocke vos clés privées et vous permet d'envoyer et recevoir des cryptomonnaies.
+
+**Hot wallet (portefeuille chaud)** : Portefeuille connecté à Internet (application mobile, extension navigateur). Pratique mais plus vulnérable au piratage. Exemples : MetaMask, Coinbase Wallet.
+
+**Cold wallet (portefeuille froid)** : Portefeuille déconnecté d'Internet (clé USB spécialisée). Plus sécurisé mais moins pratique. Exemples : Ledger, Trezor.
+
+**Portefeuille custodial (hébergé)** : Un tiers (une plateforme comme Coinbase ou Binance) détient vos clés privées pour vous. Simple à utiliser, mais vous dépendez de cette plateforme.
+
+**Portefeuille non-custodial** : Vous détenez vous-même vos clés privées. Plus de contrôle, mais plus de responsabilité (si vous perdez votre seed phrase, personne ne peut vous aider).
+
+## Plateformes d'échange
+
+**CEX (Centralized Exchange)** : Plateforme d'échange centralisée, gérée par une entreprise. Exemples : Binance, Coinbase, Kraken. Avantages : simple d'utilisation, liquidité élevée. Inconvénients : vous ne contrôlez pas vos clés privées.
+
+**DEX (Decentralized Exchange)** : Plateforme d'échange décentralisée, fonctionnant via des smart contracts sans intermédiaire. Exemples : Uniswap, PancakeSwap. Avantages : vous gardez le contrôle de vos fonds. Inconvénients : plus complexe, risque de smart contracts défaillants.
+
+**KYC (Know Your Customer)** : Processus de vérification d'identité obligatoire sur les plateformes régulées. Vous devez fournir une pièce d'identité et parfois un justificatif de domicile.
+
+**PSAN / PSCA** : En France, les Prestataires de Services sur Actifs Numériques (PSAN) ou Prestataires de Services sur Crypto-Actifs (PSCA) doivent être enregistrés auprès de l'AMF. Vérifiez toujours la liste blanche de l'AMF avant d'utiliser une plateforme.
+
+## Trading et marché
+
+**Market cap (capitalisation boursière)** : Prix unitaire d'une crypto multiplié par le nombre total d'unités en circulation. Indicateur de la taille relative d'une cryptomonnaie.
+
+**Volatilité** : Ampleur des variations de prix. Les cryptomonnaies sont très volatiles — le Bitcoin peut gagner ou perdre 10% en une journée.
+
+**Bull market / Bear market** : Un bull market est une période de hausse prolongée des prix. Un bear market est une période de baisse prolongée.
+
+**HODL** : Terme de la communauté crypto signifiant « Hold On for Dear Life » — garder ses cryptomonnaies sur le long terme sans vendre, même quand les prix baissent.
+
+**FOMO (Fear Of Missing Out)** : Peur de rater une opportunité, qui pousse à acheter impulsivement quand les prix montent. C'est un piège classique pour les débutants.
+
+**FUD (Fear, Uncertainty, Doubt)** : Informations négatives (vraies ou fausses) qui créent de la peur et poussent à vendre. Toujours vérifier les sources.
+
+## DeFi et concepts avancés
+
+**DeFi (Finance Décentralisée)** : Ensemble de services financiers (prêts, emprunts, échanges) fonctionnant sur la blockchain sans intermédiaire bancaire.
+
+**Staking** : Mise en jeu de cryptomonnaies pour participer à la validation des transactions sur une blockchain Proof of Stake. En échange, vous recevez des récompenses.
+
+**Yield farming** : Stratégie consistant à déplacer ses cryptomonnaies entre différents protocoles DeFi pour maximiser les rendements. Risqué et complexe.
+
+**Gas fees (frais de gas)** : Frais payés pour exécuter une transaction sur une blockchain. Sur Ethereum, ces frais varient selon la congestion du réseau et peuvent être très élevés en période de forte activité.
+
+**Layer 2 (couche 2)** : Solutions construites au-dessus d'une blockchain principale pour améliorer la vitesse et réduire les coûts de transaction. Exemples : Lightning Network (Bitcoin), Arbitrum et Optimism (Ethereum).
+
+## Arnaques courantes
+
+**Rug pull** : Les créateurs d'un projet crypto retirent soudainement toute la liquidité et disparaissent avec l'argent des investisseurs. Très fréquent sur les DEX avec les nouveaux tokens.
+
+**Phishing** : Faux sites web ou emails imitant des plateformes légitimes pour voler vos identifiants ou seed phrases.
+
+**Pump and dump** : Manipulation de marché où un groupe gonfle artificiellement le prix d'un token (pump) puis vend massivement (dump), laissant les derniers acheteurs avec des pertes.
+
+**Faux airdrops** : Offres frauduleuses de tokens gratuits qui demandent de connecter votre wallet ou de fournir votre seed phrase.
+
+Source : Ce glossaire est compilé à partir de sources éducatives publiques (AMF, Coinbase Learn, Ethereum.org, Binance Academy).
