@@ -28,3 +28,7 @@ __pycache__/
 chroma_db/
 
 git config --global core.autocrlf true
+
+tasks_crypto.json
+quiz_scores.json
+notes_crypto/

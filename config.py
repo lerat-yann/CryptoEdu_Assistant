@@ -2,11 +2,14 @@
 Configuration du CryptoEdu Assistant.
 Système de cascade : 3 modèles gratuits fiables + openrouter/free en dernier recours.
 
-Cascade mise à jour mars 2026 (llama-4-maverick retiré d'OpenRouter) :
-  1. meta-llama/llama-3.3-70b-instruct:free  — fiable, multilingue, bon tool-calling
-  2. deepseek/deepseek-r1:free               — excellent raisonnement
-  3. mistralai/mistral-small-3.1-24b-instruct:free — bon pour les agents/RAG
-  4. openrouter/free                          — dernier recours (modèle aléatoire)
+Cascade mise à jour mars 2026 — modèles sélectionnés pour tool-calling fiable :
+  1. meta-llama/llama-3.3-70b-instruct:free        — fiable, multilingue, tool-calling stable
+  2. mistralai/mistral-small-3.1-24b-instruct:free — bon agents/RAG, tool-calling stable
+  3. google/gemini-flash-1.5:free                  — tool-calling fiable, contexte long
+  4. qwen/qwen3-14b:free                           — raisonnement, tool-calling supporté
+
+openrouter/free retiré : sélectionne des modèles aléatoires (Trinity, StepFun...)
+qui ne supportent pas le tool-calling du SDK openai-agents.
 
 Limites free tier OpenRouter : ~20 req/min, ~200 req/jour par modèle.
 Avec 4 modèles en cascade, on a ~800 req/jour au total.
@@ -62,16 +65,16 @@ _openrouter_client = AsyncOpenAI(
 # ══════════════════════════════════════════════════════════════════════════════
 
 MODEL_CASCADE_MAIN = [
-    "meta-llama/llama-3.3-70b-instruct:free",       # Fiable, multilingue, bon tool-calling
-    "deepseek/deepseek-r1:free",                     # Excellent raisonnement
-    "mistralai/mistral-small-3.1-24b-instruct:free", # Bon pour agents/RAG
-    "openrouter/free",                               # Dernier recours (modèle aléatoire)
+    "meta-llama/llama-3.3-70b-instruct:free",        # Fiable, multilingue, excellent tool-calling
+    "mistralai/mistral-small-3.1-24b-instruct:free",  # Bon pour agents/RAG, tool-calling stable
+    "google/gemini-flash-1.5:free",                   # Tool-calling fiable, bon contexte long
+    "qwen/qwen3-14b:free",                            # Bon raisonnement, tool-calling supporté
 ]
 
 MODEL_CASCADE_FAST = [
     "meta-llama/llama-3.3-70b-instruct:free",
-    "mistralai/mistral-small-3.1-24b-instruct:free",
-    "openrouter/free",
+    "google/gemini-flash-1.5:free",
+    "qwen/qwen3-14b:free",
 ]
 
 _current_main_index = 0
