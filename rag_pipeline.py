@@ -40,8 +40,11 @@ load_dotenv()
 # ── Configuration ────────────────────────────────────────────────────────────
 
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
-if not OPENROUTER_API_KEY:
-    logger.error("OPENROUTER_API_KEY manquante dans .env")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+
+# Le RAG utilise Groq en priorité (comme le reste de l'app), OpenRouter en fallback
+if not GROQ_API_KEY and not OPENROUTER_API_KEY:
+    logger.error("Aucune clé API (GROQ_API_KEY ou OPENROUTER_API_KEY) trouvée dans .env")
     sys.exit(1)
 
 PDF_FOLDER    = "./docs_crypto/"
@@ -162,19 +165,32 @@ def build_pipeline(doc_folder: str = PDF_FOLDER):
         weights=[0.5, 0.5],
     )
 
-    # LLM via OpenRouter (compatible OpenAI API)
-    # Utilise le premier modèle de la cascade (gratuit, bon pour le RAG)
-    llm = ChatOpenAI(
-        model="openrouter/free",
-        openai_api_key=OPENROUTER_API_KEY,
-        openai_api_base="https://openrouter.ai/api/v1",
-        temperature=0.2,
-        max_tokens=800,
-        default_headers={
-            "HTTP-Referer": "https://cryptoedu-assistant.streamlit.app",
-            "X-Title": "CryptoEdu Assistant",
-        },
-    )
+    # LLM via Groq (prioritaire) ou OpenRouter (fallback)
+    # Groq offre un meilleur débit et un tool-calling plus fiable.
+    # OpenRouter/free consommait le quota sur des modèles aléatoires
+    # et provoquait des 429 en cascade — ne plus l'utiliser ici.
+    if GROQ_API_KEY:
+        llm = ChatOpenAI(
+            model="moonshotai/kimi-k2-instruct",
+            openai_api_key=GROQ_API_KEY,
+            openai_api_base="https://api.groq.com/openai/v1",
+            temperature=0.2,
+            max_tokens=800,
+        )
+        logger.info("LLM RAG : Groq (kimi-k2-instruct)")
+    else:
+        llm = ChatOpenAI(
+            model="meta-llama/llama-3.3-70b-instruct:free",
+            openai_api_key=OPENROUTER_API_KEY,
+            openai_api_base="https://openrouter.ai/api/v1",
+            temperature=0.2,
+            max_tokens=800,
+            default_headers={
+                "HTTP-Referer": "https://cryptoedu-assistant.streamlit.app",
+                "X-Title": "CryptoEdu Assistant",
+            },
+        )
+        logger.info("LLM RAG : OpenRouter (llama-3.3-70b — fallback, pas de clé Groq)")
 
     # Prompt RAG
     rag_prompt = ChatPromptTemplate.from_messages([

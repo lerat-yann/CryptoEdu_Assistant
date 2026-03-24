@@ -13,7 +13,7 @@ Gestion de la cascade :
 import asyncio
 from agents import Runner
 from agents.exceptions import InputGuardrailTripwireTriggered
-from openai import RateLimitError, NotFoundError, BadRequestError
+from openai import RateLimitError, NotFoundError, BadRequestError, APIStatusError, APIConnectionError
 import config
 from crypto_manager import manager
 
@@ -67,7 +67,7 @@ async def chat(query: str) -> str:
         except InputGuardrailTripwireTriggered:
             return REFUSED_MESSAGE
 
-        except (RateLimitError, NotFoundError, BadRequestError) as e:
+        except (RateLimitError, NotFoundError, BadRequestError, APIStatusError, APIConnectionError) as e:
             # Le modèle actuel est rate-limité, introuvable, ou ne supporte pas
             # le format des tool calls (ex: StepFun via openrouter/free)
             if isinstance(e, RateLimitError):

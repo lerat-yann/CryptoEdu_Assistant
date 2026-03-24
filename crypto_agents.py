@@ -54,7 +54,7 @@ REGLE_ANTI_CONSEIL = (
 # Aucun LLM n'est appelé ici, ce qui les rend rapides, fiables et déterministes.
 
 @function_tool
-def get_checklist_debutant() -> str:
+def get_checklist_debutant(query: str = "checklist") -> str:
     """Retourne la checklist complète pour démarrer en crypto en toute sécurité.
 
     Utilise cet outil pour toute question type :
@@ -155,7 +155,7 @@ def get_checklist_debutant() -> str:
 
 
 @function_tool
-def get_etapes_premier_achat() -> str:
+def get_etapes_premier_achat(query: str = "premier achat") -> str:
     """Retourne le guide pas-à-pas pour effectuer son premier achat de crypto.
 
     Utilise cet outil pour toute question type :
@@ -244,7 +244,7 @@ def get_etapes_premier_achat() -> str:
 
 
 @function_tool
-def get_bonnes_pratiques_wallet() -> str:
+def get_bonnes_pratiques_wallet(query: str = "wallet") -> str:
     """Retourne le guide complet sur la sécurité des wallets crypto.
 
     Utilise cet outil pour toute question type :

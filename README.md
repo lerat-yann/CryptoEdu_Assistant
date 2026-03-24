@@ -1,192 +1,222 @@
 # 🪙 CryptoEdu Assistant
 
-> Assistant éducatif sur les cryptomonnaies pour débutants francophones.  
-> Architecture multi-agent avec RAG, guardrails et données de marché en temps réel.
+**Assistant éducatif sur les cryptomonnaies pour débutants francophones.**
+
+> ⚠️ Cet assistant est **éducatif uniquement**. Il ne donne aucun conseil d'investissement.
+> Les crypto-actifs sont des investissements spéculatifs à haut risque ([AMF](https://www.amf-france.org)).
 
 ---
 
-## 📌 Présentation
+## Présentation
 
-CryptoEdu Assistant est un assistant conversationnel pédagogique qui aide les débutants à comprendre l'univers des cryptomonnaies. Il répond aux questions éducatives, présente des données de marché à titre informatif, et refuse systématiquement de donner des conseils d'investissement.
+CryptoEdu Assistant est un chatbot multi-agent qui aide les débutants francophones à comprendre les cryptomonnaies en toute sécurité. Il combine un pipeline RAG alimenté par des sources officielles (AMF, Coinbase Learn, CoinGecko), des données de marché en temps réel, et un système de guardrails qui refuse systématiquement tout conseil d'investissement.
 
-**Ce que l'assistant peut faire :**
-- Expliquer les concepts crypto (blockchain, wallet, DeFi, NFT, stablecoin...)
-- Guider pas-à-pas pour démarrer en toute sécurité
-- Afficher les prix en temps réel (Bitcoin, Ethereum, Solana...)
-- Informer sur les risques et les arnaques à éviter
-- Rediriger poliment les demandes de conseils vers une réponse éducative
-
-**Ce que l'assistant ne fait jamais :**
-- Donner des conseils d'investissement
-- Prédire l'évolution des prix
-- Répondre aux demandes d'arnaques ou de manipulation de marché
+**Philosophie** : éduquer sans jamais prescrire. Chaque question reçoit une réponse pédagogique sourcée ; chaque demande de conseil est poliment redirigée vers une explication des critères d'évaluation.
 
 ---
 
-## 🏗️ Architecture
-
-```
-CryptoEdu_Assistant/
-├── docs_crypto/               # Corpus documentaire (7 fichiers)
-│   ├── wallet_coinbase.pdf
-│   ├── amf_investir_crypto.pdf
-│   ├── amf_precautions_pratiques.pdf
-│   ├── coingecko_cex_dex_2026.pdf
-│   ├── blockchain_pour_debutants.txt
-│   ├── stablecoins_guide.txt
-│   └── glossaire_crypto.txt
-│
-├── config.py                  # OpenRouter + cascade de modèles gratuits
-├── rag_pipeline.py            # RAG : LangChain + ChromaDB + BM25
-├── guardrails.py              # Filtrage 3 couches
-├── crypto_agents.py           # 3 agents + 3 outils + 3 wrappers
-├── crypto_manager.py          # Orchestrateur multi-agent
-├── main.py                    # Interface CLI
-│
-├── .env.example               # Template des variables d'environnement
-├── requirements.txt           # Dépendances Python
-└── NOTES_DEVELOPPEMENT.md     # Journal de développement
-```
+## Fonctionnalités
 
 ### Agents spécialisés
+- **Agent Éducation** — Répond aux questions conceptuelles via le corpus RAG (blockchain, wallets, DeFi, NFT, stablecoins, réglementation…)
+- **Agent Marché** — Données en temps réel via l'API CoinGecko : prix, variations, capitalisation, volumes
+- **Agent Risques** — Détecte les demandes de conseil, refuse poliment, redirige vers du contenu éducatif
 
-| Agent | Rôle | Source de données |
-|---|---|---|
-| **Agent Éducation** | Répond aux questions pédagogiques | RAG (corpus AMF, Coinbase, CoinGecko) |
-| **Agent Marché** | Données de prix en temps réel | CoinGecko API publique |
-| **Agent Risques** | Détecte et refuse les demandes prescriptives | Analyse + règles métier |
+### Outils déterministes (sans appel LLM)
+- **Checklist débutant** — Les 7 étapes pour démarrer en crypto
+- **Guide premier achat** — Pas-à-pas du dépôt à la vérification
+- **Bonnes pratiques wallet** — Seed phrase, hot/cold wallet, erreurs courantes
 
-### Outils déterministes (sans LLM)
+### MCP local (outils post-réponse)
+- **Notes** — Sauvegarde des réponses en fichiers Markdown (`notes_crypto/`)
+- **Tâches** — Liste d'apprentissage avec priorités et catégories (`tasks_crypto.json`)
+- **Quiz** — 13 questions, 6 catégories, 3 niveaux de difficulté (`quiz_crypto.json`)
 
-| Outil | Description |
-|---|---|
-| `get_checklist_debutant()` | 7 étapes pour démarrer en crypto |
-| `get_etapes_premier_achat()` | Guide pas-à-pas pour le premier achat |
-| `get_bonnes_pratiques_wallet()` | Sécurité, seed phrase, erreurs courantes |
+### Guardrails à 3 couches
+1. **Mots-clés bloquants** — Arnaques, manipulation, hors-sujet flagrant → blocage immédiat
+2. **Mots-clés crypto** — Termes éducatifs évidents → passage sans appel LLM
+3. **Classifieur LLM** — Cas ambigus, avec fail-safe en mode passage (un faux négatif est moins grave qu'un débutant légitime bloqué)
 
-### Guardrails (filtrage 3 couches)
-
-```
-Couche 1 — Mots-clés bloquants  →  arnaques, manipulation, hors sujet flagrant
-Couche 2 — Mots-clés crypto     →  passage immédiat (sans LLM)
-Couche 3 — LLM classifieur      →  cas ambigus (fail-safe : passage)
-```
+### Interface Streamlit
+- Dark mode (Space Mono + DM Sans, palette orange/vert)
+- Multi-sessions avec titres générés par LLM
+- Historique contextuel (3 derniers échanges pour les questions de suivi)
+- Sidebar : conversations, avertissement AMF, exemples cliquables, stack technique, liens officiels
+- Mode développeur : badge modèle, bouton d'injection de test MCP
+- Boutons MCP sous chaque réponse : 💾 Sauvegarder · ✅ Tâche · 🧠 Quiz
 
 ---
 
-## ⚙️ Stack technique
+## Architecture
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                     app.py (Streamlit)                       │
+│          Dark mode · Multi-sessions · Boutons MCP            │
+└──────────────┬───────────────────────────┬───────────────────┘
+               │                           │
+               ▼                           ▼
+┌──────────────────────────┐   ┌──────────────────────────────┐
+│   crypto_manager.py      │   │   MCP local                  │
+│   Orchestrateur (6 outils)│   │   mcp_notes.py (Markdown)   │
+│   + guardrails.py        │   │   mcp_tasks.py (JSON)        │
+└──────┬───────┬───────┬───┘   │   mcp_quiz.py  (JSON)        │
+       │       │       │       └──────────────────────────────┘
+       ▼       ▼       ▼
+┌────────┐ ┌────────┐ ┌────────┐
+│Éducation│ │ Marché │ │Risques │
+│  (RAG) │ │(Gecko) │ │(Guard) │
+└────┬───┘ └────┬───┘ └────────┘
+     │          │
+     ▼          ▼
+┌────────┐ ┌────────┐
+│ChromaDB│ │CoinGecko│
+│+ BM25  │ │  API   │
+└────────┘ └────────┘
+```
+
+### Cascade de modèles
+
+L'assistant utilise exclusivement des modèles gratuits via OpenRouter, organisés en cascade automatique. Si un modèle atteint sa limite de requêtes (429), est introuvable (404), ou ne supporte pas le format (400), le système bascule automatiquement vers le suivant :
+
+| Position | Modèle | Rôle |
+|----------|--------|------|
+| 1 | `meta-llama/llama-3.3-70b-instruct:free` | Principal — multilingue, tool-calling fiable |
+| 2 | `mistralai/mistral-small-3.1-24b-instruct:free` | Backup — bon pour agents/RAG |
+| 3 | `google/gemini-flash-1.5:free` | Backup — contexte long |
+| 4 | `qwen/qwen3-14b:free` | Dernier recours — raisonnement |
+
+La cascade se réinitialise automatiquement entre chaque question pour repartir du meilleur modèle.
+
+---
+
+## Stack technique
 
 | Composant | Technologie |
-|---|---|
-| LLM | OpenRouter (gratuit) — cascade 4 modèles |
-| Framework agents | SDK `openai-agents` |
-| RAG | LangChain + ChromaDB + HuggingFace |
-| Embeddings | `all-MiniLM-L6-v2` |
+|-----------|-------------|
+| Agents | SDK `openai-agents` (orchestration, tool-calling, guardrails) |
+| LLM | OpenRouter free tier (4 modèles en cascade) |
+| RAG | LangChain + ChromaDB + BM25 (retriever hybride 50/50) |
+| Embeddings | HuggingFace `all-MiniLM-L6-v2` |
 | Données marché | CoinGecko API publique (sans clé) |
-| Interface | CLI → Streamlit (Jour 4) |
-
-### Cascade de modèles OpenRouter
-
-Le système bascule automatiquement sur le modèle suivant en cas d'erreur (429, 404, 400) :
-
-```
-1. meta-llama/llama-3.3-70b-instruct:free   ← prioritaire
-2. deepseek/deepseek-r1:free
-3. mistralai/mistral-small-3.1-24b-instruct:free
-4. openrouter/free                           ← filet de sécurité
-```
+| Interface | Streamlit (dark mode custom) |
+| MCP | `function_tool` local (notes Markdown, tâches JSON, quiz JSON) |
 
 ---
 
-## 🚀 Installation
+## Installation
 
 ### Prérequis
 - Python 3.10+
-- Un compte gratuit sur [OpenRouter](https://openrouter.ai/) (aucune carte bancaire requise)
+- Compte OpenRouter gratuit → [openrouter.ai](https://openrouter.ai/)
 
-### 1. Cloner le dépôt
-
-```bash
-git clone <url-du-repo>
-cd CryptoEdu_Assistant
-```
-
-### 2. Créer un environnement virtuel
+### Étapes
 
 ```bash
-python -m venv .venv
+# 1. Cloner le projet
+git clone https://github.com/<votre-repo>/cryptoedu-assistant.git
+cd cryptoedu-assistant
 
-# Windows
-.venv\Scripts\activate
-
-# Linux / macOS
-source .venv/bin/activate
-```
-
-### 3. Installer les dépendances
-
-```bash
+# 2. Installer les dépendances
 pip install -r requirements.txt
-```
 
-### 4. Configurer les variables d'environnement
-
-```bash
+# 3. Configurer la clé API
 cp .env.example .env
-```
+# Éditer .env et ajouter : OPENROUTER_API_KEY=sk-or-...
 
-Éditez `.env` et ajoutez votre clé OpenRouter :
+# 4. Ajouter des documents au corpus RAG (optionnel)
+# Placer des PDF ou fichiers .txt dans le dossier docs_crypto/
 
-```env
-OPENROUTER_API_KEY=sk-or-...
-```
+# 5. Lancer l'interface
+streamlit run app.py
 
-### 5. Ajouter les documents dans `docs_crypto/`
-
-Placez vos PDF et fichiers `.txt` dans le dossier `docs_crypto/`.  
-Le pipeline RAG les indexera automatiquement au premier lancement.
-
----
-
-## 💬 Utilisation
-
-### Interface CLI
-
-```bash
+# Ou en mode CLI :
 python main.py
 ```
 
+### Dépendances principales
+
 ```
-╔═══════════════════════════════════════════════════════════════╗
-║             CryptoEdu Assistant                               ║
-║   Éducation · Marché · Risques · Débutants                   ║
-╚═══════════════════════════════════════════════════════════════╝
-
-> Par où commencer si je veux me lancer dans les cryptos ?
-> C'est quoi un wallet et comment le sécuriser ?
-> Quel est le prix du Bitcoin aujourd'hui ?
-> Quelle différence entre un CEX et un DEX ?
+openai-agents
+langchain langchain-community langchain-openai langchain-huggingface langchain-chroma langchain-classic
+chromadb
+sentence-transformers
+streamlit
+python-dotenv
+requests
+rank-bm25
 ```
 
 ---
 
-## 🔒 Sécurité et éthique
+## Structure du projet
 
-- **Jamais de conseil d'investissement** : l'assistant redirige systématiquement vers une réponse éducative
-- **Sources officielles** : les réponses s'appuient sur les guides AMF, Coinbase Learn et CoinGecko
-- **Guardrails actifs** : les demandes d'arnaques, manipulation de marché et blanchiment sont bloquées
-- **Données de marché informatives** : chaque réponse contenant des prix inclut un avertissement explicite
+```
+cryptoedu-assistant/
+├── app.py                  # Interface Streamlit (dark mode, multi-sessions, MCP)
+├── main.py                 # Interface CLI avec cascade automatique
+├── config.py               # Cascade OpenRouter, client, registre d'agents
+├── crypto_manager.py       # Orchestrateur — 6 outils, guardrails
+├── crypto_agents.py        # 3 agents + 3 outils déterministes + wrappers
+├── guardrails.py           # Filtrage 3 couches (mots-clés + LLM classifieur)
+├── rag_pipeline.py         # Pipeline RAG (LangChain + ChromaDB + BM25)
+├── mcp_notes.py            # MCP Notes — sauvegarde Markdown
+├── mcp_tasks.py            # MCP Tâches — apprentissage JSON
+├── mcp_quiz.py             # MCP Quiz — 13 questions, 6 catégories
+├── docs_crypto/            # Corpus RAG (PDF + TXT)
+├── notes_crypto/           # Notes sauvegardées (générées)
+├── tasks_crypto.json       # Tâches d'apprentissage (généré)
+├── quiz_crypto.json        # Questions du quiz (généré au 1er lancement)
+├── quiz_scores.json        # Scores du quiz (généré)
+├── .env                    # Clé API OpenRouter
+├── requirements.txt        # Dépendances Python
+└── README.md               # Ce fichier
+```
 
 ---
 
-## 📄 Licence
+## Utilisation
 
-Projet éducatif — Formation Simplon Expert IA.
+### Questions exemples
+
+| Type | Exemple |
+|------|---------|
+| Débutant | *Par où commencer si je veux me lancer dans les cryptos ?* |
+| Éducatif | *C'est quoi une seed phrase et comment la protéger ?* |
+| Marché | *Quel est le prix actuel du Bitcoin et de l'Ethereum ?* |
+| Conceptuel | *Quelle différence entre un CEX et un DEX ?* |
+| Risques | *Quels sont les principaux risques des cryptomonnaies ?* |
+| Technique | *Comment fonctionne la blockchain ?* |
+
+### Comportement face aux demandes de conseil
+
+L'assistant détecte automatiquement les demandes prescriptives et redirige :
+
+- ❌ *« Quel crypto devrais-je acheter ? »* → Refus poli + explication des critères d'évaluation
+- ❌ *« Est-ce le bon moment pour investir ? »* → Refus poli + présentation des risques
+- ✅ *« Quels critères pour évaluer un projet crypto ? »* → Réponse éducative complète
 
 ---
 
-## 🙏 Sources documentaires
+## Limites connues
+
+- **Free tier OpenRouter** : ~20 req/min par modèle, ~200 req/jour. La cascade (4 modèles) offre ~800 req/jour au total.
+- **Qualité variable** : les modèles gratuits peuvent parfois produire des réponses incomplètes ou mal formatées.
+- **RAG dépendant du corpus** : la qualité des réponses éducatives dépend des documents placés dans `docs_crypto/`.
+- **MCP local uniquement** : les notes, tâches et quiz sont stockés localement (pas de synchronisation cloud).
+- **CoinGecko API publique** : limitée en nombre de requêtes et sans données historiques avancées.
+
+---
+
+## Licence
+
+Ce projet est distribué sous licence MIT. Voir le fichier [`LICENSE`](LICENSE) pour les détails.
+
+---
+
+## Ressources officielles
 
 - [AMF — Guides crypto-actifs](https://www.amf-france.org)
-- [Coinbase Learn](https://www.coinbase.com/fr/learn)
-- [CoinGecko Research](https://www.coingecko.com)
+- [Coinbase Learn (FR)](https://www.coinbase.com/fr/learn)
+- [CoinGecko](https://www.coingecko.com)
+- [ACPR — Crypto et risques](https://acpr.banque-france.fr)

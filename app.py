@@ -12,7 +12,7 @@ import uuid
 import streamlit as st
 from agents import Agent, Runner
 from agents.exceptions import InputGuardrailTripwireTriggered
-from openai import RateLimitError, NotFoundError, BadRequestError, APIStatusError
+from openai import RateLimitError, NotFoundError, BadRequestError, APIStatusError, APIConnectionError, AuthenticationError, PermissionDeniedError
 import config
 from crypto_manager import manager
 from mcp_notes import _save_note, _list_notes
@@ -396,7 +396,10 @@ def _build_input_with_context(query: str, history: list, max_turns: int = 3) -> 
 
 async def _chat_async(query: str, history: list) -> tuple[str, str]:
     prompt_with_context = _build_input_with_context(query, history)
-    while True:
+    max_attempts = 4  # Groq → OpenRouter → Groq → stop
+    attempts = 0
+    while attempts < max_attempts:
+        attempts += 1
         try:
             result = await Runner.run(manager, input=prompt_with_context, max_turns=20)
             response = result.final_output or ""
@@ -410,13 +413,16 @@ async def _chat_async(query: str, history: list) -> tuple[str, str]:
         except InputGuardrailTripwireTriggered:
             return REFUSED_MESSAGE, "guardrail"
 
-        except (RateLimitError, NotFoundError, BadRequestError, APIStatusError):
+        except (RateLimitError, NotFoundError, BadRequestError, APIStatusError,
+                APIConnectionError, AuthenticationError, PermissionDeniedError):
             switched = config.switch_to_next_model()
             if not switched:
                 return CASCADE_EXHAUSTED_MESSAGE, "cascade_exhausted"
 
         except Exception as e:
             return f"Erreur inattendue : {type(e).__name__}: {e}", "error"
+
+    return CASCADE_EXHAUSTED_MESSAGE, "cascade_exhausted"
 
 
 def chat(query: str, history: list) -> tuple[str, str]:
