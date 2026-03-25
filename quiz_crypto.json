@@ -180,5 +180,383 @@
     ],
     "answer": "B",
     "explanation": "En France, les plus-values sur cession de crypto-actifs sont imposables. Par défaut, elles sont soumises au Prélèvement Forfaitaire Unique (PFU) ou flat-tax de 30 % (12,8 % d'impôt + 17,2 % de prélèvements sociaux). Il est obligatoire de déclarer ses comptes ouverts à l'étranger et de conserver l'historique de toutes ses transactions."
+  },
+  {
+    "id": "q014",
+    "category": "fondamentaux",
+    "difficulty": "débutant",
+    "question": "Qui a créé le Bitcoin ?",
+    "choices": [
+      "A. Elon Musk",
+      "B. Vitalik Buterin",
+      "C. Satoshi Nakamoto (pseudonyme)",
+      "D. La Banque Centrale Européenne"
+    ],
+    "answer": "C",
+    "explanation": "Bitcoin a été créé en 2008 par une personne (ou un groupe) sous le pseudonyme de Satoshi Nakamoto. Son identité réelle reste inconnue à ce jour. Le premier bloc (bloc Genesis) a été miné le 3 janvier 2009."
+  },
+  {
+    "id": "q015",
+    "category": "fondamentaux",
+    "difficulty": "débutant",
+    "question": "Combien de bitcoins pourront exister au maximum ?",
+    "choices": [
+      "A. Il n'y a pas de limite",
+      "B. 21 millions",
+      "C. 100 millions",
+      "D. 1 milliard"
+    ],
+    "answer": "B",
+    "explanation": "Le protocole Bitcoin limite le nombre total de bitcoins à 21 millions. Cette rareté programmée est l'un des arguments des partisans du Bitcoin, qui le comparent à l'or numérique. Environ 19,5 millions sont déjà en circulation (mars 2026)."
+  },
+  {
+    "id": "q016",
+    "category": "fondamentaux",
+    "difficulty": "intermédiaire",
+    "question": "Qu'est-ce que le 'halving' du Bitcoin ?",
+    "choices": [
+      "A. La division du prix du Bitcoin par deux",
+      "B. La réduction de moitié de la récompense de minage environ tous les 4 ans",
+      "C. La fermeture de la moitié des nœuds du réseau",
+      "D. Un fork qui divise la blockchain en deux"
+    ],
+    "answer": "B",
+    "explanation": "Le halving est un événement programmé dans le code de Bitcoin : tous les 210 000 blocs (~4 ans), la récompense donnée aux mineurs est divisée par deux. Le dernier halving a eu lieu en avril 2024, réduisant la récompense de 6,25 à 3,125 BTC par bloc. Cela contribue à la rareté croissante du Bitcoin."
+  },
+  {
+    "id": "q017",
+    "category": "fondamentaux",
+    "difficulty": "intermédiaire",
+    "question": "Que signifie 'Proof of Stake' (PoS) ?",
+    "choices": [
+      "A. Les validateurs minent avec des cartes graphiques puissantes",
+      "B. Les validateurs immobilisent (stakent) des cryptos pour sécuriser le réseau",
+      "C. Les utilisateurs votent pour choisir les transactions à valider",
+      "D. Un mécanisme qui empêche la création de nouveaux tokens"
+    ],
+    "answer": "B",
+    "explanation": "Le Proof of Stake (utilisé par Ethereum depuis 2022) est un mécanisme où les validateurs immobilisent (stakent) une quantité de cryptomonnaies comme garantie pour participer à la validation des blocs. Plus économe en énergie que le Proof of Work, il rémunère les stakers avec des récompenses proportionnelles à leur mise."
+  },
+  {
+    "id": "q018",
+    "category": "fondamentaux",
+    "difficulty": "avancé",
+    "question": "Qu'est-ce qu'un 'fork' dans le contexte blockchain ?",
+    "choices": [
+      "A. Un bug critique qui bloque la blockchain",
+      "B. Une mise à jour ou division de la blockchain en deux chaînes distinctes",
+      "C. Un transfert massif de tokens entre deux wallets",
+      "D. La fusion de deux cryptomonnaies en une seule"
+    ],
+    "answer": "B",
+    "explanation": "Un fork est une modification des règles du protocole blockchain. Un soft fork est rétrocompatible, un hard fork crée deux chaînes distinctes. Exemple : Bitcoin Cash (BCH) est né d'un hard fork de Bitcoin en 2017, suite à un désaccord sur la taille des blocs."
+  },
+  {
+    "id": "q019",
+    "category": "fondamentaux",
+    "difficulty": "avancé",
+    "question": "Qu'est-ce qu'un nœud (node) dans un réseau blockchain ?",
+    "choices": [
+      "A. Un ordinateur qui stocke et valide la copie complète de la blockchain",
+      "B. Un type de wallet utilisé par les développeurs",
+      "C. Un serveur appartenant à l'entreprise qui gère la crypto",
+      "D. Un point de connexion entre deux exchanges"
+    ],
+    "answer": "A",
+    "explanation": "Un nœud est un ordinateur connecté au réseau blockchain qui stocke une copie complète (ou partielle) du registre et participe à la vérification des transactions. Plus il y a de nœuds, plus le réseau est décentralisé et résistant à la censure."
+  },
+  {
+    "id": "q020",
+    "category": "wallets",
+    "difficulty": "débutant",
+    "question": "Où faut-il conserver sa seed phrase ?",
+    "choices": [
+      "A. Dans les notes de son téléphone",
+      "B. En capture d'écran dans le cloud",
+      "C. Sur un support physique (papier, métal) en lieu sûr",
+      "D. Dans un email envoyé à soi-même"
+    ],
+    "answer": "C",
+    "explanation": "La seed phrase doit être conservée hors ligne, sur un support physique (papier ou plaque métallique gravée). Jamais sur un appareil connecté à internet (téléphone, cloud, email) — un piratage donnerait accès à tous vos fonds."
+  },
+  {
+    "id": "q021",
+    "category": "wallets",
+    "difficulty": "intermédiaire",
+    "question": "Qu'est-ce que l'authentification à deux facteurs (2FA) ?",
+    "choices": [
+      "A. Un deuxième mot de passe envoyé par la plateforme",
+      "B. Un code temporaire généré par une appli, en plus du mot de passe",
+      "C. La vérification d'identité (KYC) obligatoire",
+      "D. Un mécanisme de double signature sur la blockchain"
+    ],
+    "answer": "B",
+    "explanation": "Le 2FA ajoute une couche de sécurité : en plus du mot de passe, vous devez fournir un code temporaire généré par une application (Google Authenticator, Authy). Même si un pirate vole votre mot de passe, il ne pourra pas se connecter sans ce code."
+  },
+  {
+    "id": "q022",
+    "category": "wallets",
+    "difficulty": "avancé",
+    "question": "Qu'est-ce qu'un wallet multisig ?",
+    "choices": [
+      "A. Un wallet qui gère plusieurs cryptomonnaies",
+      "B. Un wallet nécessitant plusieurs signatures pour valider une transaction",
+      "C. Un wallet partagé entre plusieurs exchanges",
+      "D. Un wallet avec plusieurs seed phrases"
+    ],
+    "answer": "B",
+    "explanation": "Un wallet multisig (multi-signatures) exige plusieurs clés privées pour autoriser une transaction (par ex. 2 sur 3). C'est comme un coffre-fort qui nécessite deux clés différentes pour s'ouvrir. Utilisé par les entreprises et les DAOs pour sécuriser les fonds."
+  },
+  {
+    "id": "q023",
+    "category": "exchanges",
+    "difficulty": "débutant",
+    "question": "Qu'est-ce qu'un DEX (Decentralized Exchange) ?",
+    "choices": [
+      "A. Un exchange géré par un gouvernement",
+      "B. Une plateforme d'échange fonctionnant sans intermédiaire via smart contracts",
+      "C. Un exchange réservé aux professionnels",
+      "D. Un exchange qui ne nécessite pas de connexion internet"
+    ],
+    "answer": "B",
+    "explanation": "Un DEX est une plateforme d'échange décentralisée qui fonctionne grâce à des smart contracts — sans entreprise intermédiaire. Exemples : Uniswap, SushiSwap. Avantage : vous gardez le contrôle de vos clés. Inconvénient : interface moins intuitive pour les débutants."
+  },
+  {
+    "id": "q024",
+    "category": "exchanges",
+    "difficulty": "intermédiaire",
+    "question": "Qu'est-ce que le 'spread' sur un exchange ?",
+    "choices": [
+      "A. Les frais de retrait en cryptomonnaie",
+      "B. La différence entre le prix d'achat et le prix de vente",
+      "C. Le délai de confirmation d'une transaction",
+      "D. Le nombre minimum de cryptos à acheter"
+    ],
+    "answer": "B",
+    "explanation": "Le spread est l'écart entre le prix d'achat (ask) et le prix de vente (bid) d'une cryptomonnaie sur un exchange. Plus le spread est faible, plus le marché est liquide. C'est un coût caché en plus des frais de transaction affichés."
+  },
+  {
+    "id": "q025",
+    "category": "exchanges",
+    "difficulty": "avancé",
+    "question": "Qu'est-ce qu'un AMM (Automated Market Maker) ?",
+    "choices": [
+      "A. Un robot de trading automatique",
+      "B. Un algorithme qui gère la liquidité et les prix sur un DEX",
+      "C. Un outil de détection de fraudes sur les exchanges",
+      "D. Un système de mise en correspondance d'ordres sur un CEX"
+    ],
+    "answer": "B",
+    "explanation": "Un AMM est un mécanisme utilisé par les DEX (comme Uniswap) pour déterminer automatiquement les prix sans carnet d'ordres. Il utilise des pools de liquidité et une formule mathématique (typiquement x × y = k). Les fournisseurs de liquidité déposent des tokens dans ces pools et reçoivent des frais en échange."
+  },
+  {
+    "id": "q026",
+    "category": "risques",
+    "difficulty": "débutant",
+    "question": "Quel est le principal risque des cryptomonnaies pour un débutant ?",
+    "choices": [
+      "A. Le risque de piratage de la blockchain Bitcoin",
+      "B. La volatilité extrême des prix (pertes possibles de 80-90 %)",
+      "C. L'impossibilité de revendre ses cryptos",
+      "D. L'obligation de miner pour posséder des cryptos"
+    ],
+    "answer": "B",
+    "explanation": "La volatilité est le risque n°1 : le prix des cryptomonnaies peut varier de manière extrême en peu de temps. Le Bitcoin a par exemple perdu ~75 % de sa valeur entre novembre 2021 et novembre 2022. C'est pourquoi l'AMF recommande de n'investir que ce qu'on peut se permettre de perdre entièrement."
+  },
+  {
+    "id": "q027",
+    "category": "risques",
+    "difficulty": "débutant",
+    "question": "Qu'est-ce qu'un PSAN en France ?",
+    "choices": [
+      "A. Un type de wallet sécurisé certifié par l'État",
+      "B. Un Prestataire de Services sur Actifs Numériques enregistré auprès de l'AMF",
+      "C. Un protocole de paiement en crypto accepté par les commerçants",
+      "D. Un plan d'épargne en actifs numériques"
+    ],
+    "answer": "B",
+    "explanation": "PSAN signifie Prestataire de Services sur Actifs Numériques. C'est un enregistrement obligatoire auprès de l'AMF pour toute plateforme proposant des services crypto en France. Vérifiez toujours que votre plateforme est enregistrée sur le registre officiel de l'AMF avant d'y déposer des fonds."
+  },
+  {
+    "id": "q028",
+    "category": "risques",
+    "difficulty": "intermédiaire",
+    "question": "Pourquoi ne faut-il jamais emprunter pour acheter des cryptos ?",
+    "choices": [
+      "A. Parce que les banques l'interdisent formellement",
+      "B. Parce qu'en cas de chute des prix, vous perdez vos cryptos ET devez rembourser le prêt",
+      "C. Parce que les cryptos achetées à crédit sont bloquées",
+      "D. Parce que les frais bancaires sont trop élevés"
+    ],
+    "answer": "B",
+    "explanation": "Emprunter pour investir en crypto est extrêmement risqué : si les prix chutent (ce qui arrive régulièrement), vous perdez la valeur de vos cryptos mais devez toujours rembourser le prêt avec intérêts. C'est un risque de surendettement réel."
+  },
+  {
+    "id": "q029",
+    "category": "risques",
+    "difficulty": "avancé",
+    "question": "Qu'est-ce que l'impermanent loss en DeFi ?",
+    "choices": [
+      "A. La perte de sa seed phrase de façon permanente",
+      "B. Une perte de valeur subie par les fournisseurs de liquidité par rapport au simple hold",
+      "C. La dépréciation d'un stablecoin par rapport au dollar",
+      "D. Les frais de gas excessifs sur Ethereum"
+    ],
+    "answer": "B",
+    "explanation": "L'impermanent loss touche les fournisseurs de liquidité sur les DEX. Quand le prix des tokens dans un pool varie, la valeur de votre position peut être inférieure à ce que vous auriez eu en gardant simplement vos tokens. Cette perte devient 'permanente' si vous retirez vos fonds pendant un déséquilibre de prix."
+  },
+  {
+    "id": "q030",
+    "category": "defi",
+    "difficulty": "débutant",
+    "question": "Que signifie DeFi ?",
+    "choices": [
+      "A. Digital Finance — la finance numérique des banques",
+      "B. Decentralized Finance — la finance décentralisée sans intermédiaire",
+      "C. Defined Finance — une réglementation européenne sur les cryptos",
+      "D. Default Finance — un système de gestion des défauts de paiement"
+    ],
+    "answer": "B",
+    "explanation": "DeFi signifie Decentralized Finance (finance décentralisée). C'est un écosystème de services financiers (prêts, échanges, épargne) fonctionnant sur blockchain via des smart contracts, sans banques ni intermédiaires traditionnels."
+  },
+  {
+    "id": "q031",
+    "category": "defi",
+    "difficulty": "débutant",
+    "question": "Qu'est-ce qu'un NFT ?",
+    "choices": [
+      "A. Un New Financial Token — un nouveau type de cryptomonnaie",
+      "B. Un Non-Fungible Token — un jeton unique et non interchangeable",
+      "C. Un Network Fee Tax — une taxe sur les frais de réseau",
+      "D. Un Node Function Test — un test de performance blockchain"
+    ],
+    "answer": "B",
+    "explanation": "Un NFT (Non-Fungible Token) est un jeton numérique unique enregistré sur une blockchain. Contrairement au Bitcoin (fungible, chaque BTC est identique), chaque NFT est unique et peut représenter une œuvre d'art, un objet de jeu vidéo, un certificat, etc."
+  },
+  {
+    "id": "q032",
+    "category": "defi",
+    "difficulty": "intermédiaire",
+    "question": "Qu'est-ce que le 'yield farming' ?",
+    "choices": [
+      "A. Le minage de cryptomonnaies avec des panneaux solaires",
+      "B. Une stratégie consistant à fournir de la liquidité pour obtenir des rendements",
+      "C. L'achat et la revente rapide de tokens pour réaliser un profit",
+      "D. Le staking exclusif de stablecoins"
+    ],
+    "answer": "B",
+    "explanation": "Le yield farming consiste à déplacer ses cryptos entre différents protocoles DeFi pour maximiser les rendements. Concrètement, vous fournissez de la liquidité (prêtez vos tokens) à des protocoles qui vous rémunèrent en frais et en tokens de récompense. Attention : rendements élevés = risques élevés."
+  },
+  {
+    "id": "q033",
+    "category": "defi",
+    "difficulty": "intermédiaire",
+    "question": "Que sont les 'gas fees' sur Ethereum ?",
+    "choices": [
+      "A. Les frais d'inscription sur une plateforme d'exchange",
+      "B. Les frais payés aux validateurs pour exécuter des transactions sur le réseau",
+      "C. Les frais de conversion entre l'euro et les cryptos",
+      "D. Les taxes prélevées par l'État sur chaque transaction"
+    ],
+    "answer": "B",
+    "explanation": "Les gas fees sont les frais que vous payez pour exécuter une transaction ou un smart contract sur Ethereum. Ils rémunèrent les validateurs du réseau. Ces frais varient selon la congestion du réseau — ils peuvent être très élevés en période de forte demande, d'où le développement des solutions Layer 2."
+  },
+  {
+    "id": "q034",
+    "category": "defi",
+    "difficulty": "avancé",
+    "question": "Qu'est-ce qu'un Layer 2 ?",
+    "choices": [
+      "A. La deuxième version d'une cryptomonnaie",
+      "B. Un réseau construit au-dessus d'une blockchain pour améliorer la vitesse et réduire les frais",
+      "C. Un deuxième wallet de secours en cas de perte",
+      "D. La couche de chiffrement qui protège les transactions"
+    ],
+    "answer": "B",
+    "explanation": "Un Layer 2 est un réseau secondaire construit par-dessus une blockchain principale (Layer 1 comme Ethereum). Il traite les transactions hors chaîne puis les regroupe sur la chaîne principale. Exemples : Arbitrum, Optimism, Polygon. Résultat : transactions plus rapides et beaucoup moins chères."
+  },
+  {
+    "id": "q035",
+    "category": "defi",
+    "difficulty": "avancé",
+    "question": "Qu'est-ce qu'une DAO ?",
+    "choices": [
+      "A. Un exchange décentralisé chinois",
+      "B. Une organisation autonome décentralisée gouvernée par ses membres via des smart contracts",
+      "C. Un type de stablecoin algorithmique",
+      "D. Un protocole de minage décentralisé"
+    ],
+    "answer": "B",
+    "explanation": "Une DAO (Decentralized Autonomous Organization) est une organisation gérée par des smart contracts et gouvernée par ses membres via des votes on-chain. Les détenteurs de tokens de gouvernance peuvent voter sur les décisions (budgets, mises à jour du protocole). Exemples : MakerDAO, Uniswap DAO."
+  },
+  {
+    "id": "q036",
+    "category": "fiscalite",
+    "difficulty": "débutant",
+    "question": "Faut-il déclarer ses comptes crypto ouverts à l'étranger ?",
+    "choices": [
+      "A. Non, seulement si les gains dépassent 10 000 €",
+      "B. Oui, tous les comptes doivent être déclarés chaque année",
+      "C. Non, les comptes crypto ne sont pas considérés comme des comptes à l'étranger",
+      "D. Oui, mais uniquement si on a effectué plus de 10 transactions"
+    ],
+    "answer": "B",
+    "explanation": "En France, tout compte ouvert sur une plateforme d'actifs numériques établie à l'étranger doit être déclaré chaque année via le formulaire 3916-bis, quel que soit le montant. L'oubli de déclaration est sanctionnable d'une amende de 750 € par compte non déclaré."
+  },
+  {
+    "id": "q037",
+    "category": "fiscalite",
+    "difficulty": "intermédiaire",
+    "question": "Quand est-ce qu'une plus-value crypto devient imposable en France ?",
+    "choices": [
+      "A. Au moment de l'achat de la cryptomonnaie",
+      "B. Au moment de la conversion en monnaie fiat (euros) ou d'un achat de bien/service",
+      "C. Chaque année au 31 décembre, même sans vente",
+      "D. Uniquement quand on retire des euros sur son compte bancaire"
+    ],
+    "answer": "B",
+    "explanation": "La plus-value n'est imposable qu'au moment de la 'cession' : la conversion en euros (ou autre monnaie fiat) ou l'utilisation pour acheter un bien ou service. Les échanges crypto-crypto ne déclenchent pas d'imposition. Tant que vous restez en crypto, il n'y a pas de fait générateur d'impôt."
+  },
+  {
+    "id": "q038",
+    "category": "fiscalite",
+    "difficulty": "intermédiaire",
+    "question": "Qu'est-ce que le formulaire 2086 ?",
+    "choices": [
+      "A. Le formulaire de déclaration des comptes crypto à l'étranger",
+      "B. Le formulaire de calcul des plus-values sur actifs numériques",
+      "C. Le formulaire d'inscription PSAN auprès de l'AMF",
+      "D. Le formulaire de demande d'exonération fiscale crypto"
+    ],
+    "answer": "B",
+    "explanation": "Le formulaire 2086 (annexe de la déclaration de revenus) sert à calculer et déclarer les plus-values réalisées sur les cessions d'actifs numériques. Il faut y renseigner chaque cession, le prix d'acquisition global, et la valeur du portefeuille au moment de la vente."
+  },
+  {
+    "id": "q039",
+    "category": "fiscalite",
+    "difficulty": "avancé",
+    "question": "Les échanges crypto-contre-crypto sont-ils imposables en France ?",
+    "choices": [
+      "A. Oui, chaque échange est un fait générateur d'impôt",
+      "B. Non, seules les conversions vers une monnaie fiat sont imposables",
+      "C. Oui, mais uniquement au-delà de 305 € de gain par transaction",
+      "D. Non, sauf si l'échange est réalisé sur un exchange non régulé"
+    ],
+    "answer": "B",
+    "explanation": "En France, les échanges crypto-contre-crypto ne sont pas imposables. L'impôt n'est dû qu'en cas de 'cession à titre onéreux' en monnaie ayant cours légal (euros, dollars...) ou en contrepartie d'un bien ou service. Échanger du BTC contre de l'ETH ne déclenche pas d'impôt."
+  },
+  {
+    "id": "q040",
+    "category": "risques",
+    "difficulty": "avancé",
+    "question": "Qu'est-ce que la réglementation MiCA en Europe ?",
+    "choices": [
+      "A. Un stablecoin émis par la Banque Centrale Européenne",
+      "B. Le premier cadre réglementaire européen harmonisé pour les crypto-actifs",
+      "C. Un protocole de sécurité obligatoire pour les wallets vendus en Europe",
+      "D. Un système d'assurance pour les pertes en cryptomonnaies"
+    ],
+    "answer": "B",
+    "explanation": "MiCA (Markets in Crypto-Assets) est le règlement européen entré en vigueur progressivement en 2024-2025. Il harmonise les règles pour les prestataires de services crypto dans toute l'UE : obligations de transparence, de réserves pour les stablecoins, et de protection des consommateurs."
   }
 ]

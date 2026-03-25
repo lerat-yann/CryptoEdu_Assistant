@@ -17,7 +17,45 @@ import config
 from crypto_manager import manager
 from mcp_notes import _save_note, _list_notes
 from mcp_tasks import _add_task, _list_tasks
-from mcp_quiz  import _get_question, _check_answer, _get_score
+from mcp_quiz  import _get_question, _check_answer, _get_score, QUESTIONS as QUIZ_QUESTIONS
+
+
+def _get_unique_question(category: str, difficulty: str) -> dict:
+    """
+    Retourne une question de quiz non encore posée dans cette session.
+    Si toutes les questions du filtre ont été posées, réinitialise le pool.
+    """
+    import random as _random
+
+    asked = st.session_state.quiz_asked_ids
+
+    # Filtrage identique à _get_question
+    pool = QUIZ_QUESTIONS
+    if category != "aléatoire":
+        filtered = [q for q in pool if q["category"] == category]
+        pool = filtered if filtered else pool
+    if difficulty != "aléatoire":
+        filtered = [q for q in pool if q["difficulty"] == difficulty]
+        pool = filtered if filtered else pool
+
+    # Exclure les questions déjà posées
+    available = [q for q in pool if q["id"] not in asked]
+
+    # Si tout le pool est épuisé, réinitialiser (et élargir si filtre trop restrictif)
+    if not available:
+        st.session_state.quiz_asked_ids = set()
+        available = pool
+
+    question = _random.choice(available)
+    st.session_state.quiz_asked_ids.add(question["id"])
+
+    return {
+        "question_id": question["id"],
+        "category": question["category"],
+        "difficulty": question["difficulty"],
+        "question": question["question"],
+        "choices": question["choices"],
+    }
 
 # ══════════════════════════════════════════════════════════════════════════════
 # CONFIGURATION DE LA PAGE
@@ -319,6 +357,18 @@ if "mcp_action" not in st.session_state:
 if "quiz_state" not in st.session_state:
     st.session_state.quiz_state = None  # question en cours
 
+if "mcp_flash" not in st.session_state:
+    st.session_state.mcp_flash = None  # message de succès temporaire
+
+if "quiz_result" not in st.session_state:
+    st.session_state.quiz_result = None  # résultat du quiz en cours d'affichage
+
+if "quiz_prefs" not in st.session_state:
+    st.session_state.quiz_prefs = {"category": "aléatoire", "difficulty": "aléatoire"}
+
+if "quiz_asked_ids" not in st.session_state:
+    st.session_state.quiz_asked_ids = set()  # IDs déjà posés dans cette session
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # GÉNÉRATION DE TITRE PAR LLM
@@ -518,6 +568,63 @@ with st.sidebar:
 
     st.markdown("---")
 
+    # ── Mes notes & tâches (expanders) ──
+    try:
+        notes_data = json.loads(_list_notes())
+        notes_list = notes_data.get("notes", [])
+        notes_count = len(notes_list)
+    except Exception:
+        notes_list, notes_count = [], 0
+
+    try:
+        tasks_data = json.loads(_list_tasks(filter_done="toutes"))
+        tasks_list = tasks_data.get("tasks", [])
+        tasks_stats = tasks_data.get("stats", {})
+        tasks_count = tasks_stats.get("total", 0)
+    except Exception:
+        tasks_list, tasks_stats, tasks_count = [], {}, 0
+
+    with st.expander(f"📝 Mes notes ({notes_count})", expanded=False):
+        if notes_list:
+            for note in notes_list[:10]:
+                st.markdown(
+                    f"📄 **{note['title']}**  \n"
+                    f"<span style='font-size: 0.72rem; color: #6b7280;'>"
+                    f"{note['modified']} · {note['size_kb']} Ko</span>",
+                    unsafe_allow_html=True
+                )
+            if notes_count > 10:
+                st.caption(f"... et {notes_count - 10} autre(s)")
+        else:
+            st.caption("Aucune note. Utilisez 💾 sous une réponse.")
+
+    with st.expander(f"✅ Mes tâches ({tasks_count})", expanded=False):
+        if tasks_list:
+            done = tasks_stats.get("faites", 0)
+            pct = tasks_stats.get("progression", "0%")
+            st.markdown(
+                f"<span style='color: #00d395; font-size: 0.85rem;'>"
+                f"📊 {done}/{tasks_count} complétées ({pct})</span>",
+                unsafe_allow_html=True
+            )
+            for task in tasks_list[:10]:
+                icon = "✅" if task.get("done") else "⬜"
+                p_colors = {"haute": "#f87171", "normale": "#f7931a", "basse": "#6b7280"}
+                p_color = p_colors.get(task.get("priority", "normale"), "#6b7280")
+                style = "text-decoration: line-through; color: #6b7280;" if task.get("done") else ""
+                st.markdown(
+                    f"{icon} <span style='{style}'>{task['title']}</span> "
+                    f"<span style='font-size: 0.65rem; color: {p_color};'>"
+                    f"[{task.get('priority', '')}]</span>",
+                    unsafe_allow_html=True
+                )
+            if tasks_count > 10:
+                st.caption(f"... et {tasks_count - 10} autre(s)")
+        else:
+            st.caption("Aucune tâche. Utilisez ✅ sous une réponse.")
+
+    st.markdown("---")
+
     # ── Stack technique ──
     st.markdown("""
     <div style='font-size: 0.75rem; color: #6b7280; font-weight: 600;
@@ -610,34 +717,127 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
+def _set_mcp_action(action: str, msg_index: int, response: str):
+    """Callback pour les boutons MCP — met à jour session_state avant le rerun automatique."""
+    st.session_state.mcp_action = (action, msg_index, response)
+
+
 def _render_mcp_bar(msg_index: int, response: str):
     """
     Affiche les 3 boutons MCP sous une réponse de l'assistant.
     Chaque bouton déclenche une action post-réponse sans LLM.
+
+    Utilise on_click callbacks au lieu de if st.button + st.rerun()
+    pour éviter les problèmes de timing Streamlit : le callback s'exécute
+    AVANT le rerun, garantissant que mcp_action est bien défini.
     """
+    # Ne pas afficher les boutons si une action MCP est déjà en cours,
+    # ou si un feedback/résultat est en cours d'affichage
+    if st.session_state.mcp_action or st.session_state.mcp_flash or st.session_state.quiz_result:
+        return
+
     cols = st.columns([2, 2, 2, 3])
 
     with cols[0]:
-        if st.button("💾 Sauvegarder", key=f"note_{msg_index}", help="Sauvegarder en note Markdown"):
-            st.session_state.mcp_action = ("note", msg_index, response)
-            st.rerun()
+        st.button(
+            "💾 Sauvegarder", key=f"note_{msg_index}",
+            help="Sauvegarder en note Markdown",
+            on_click=_set_mcp_action, args=("note", msg_index, response),
+        )
 
     with cols[1]:
-        if st.button("✅ Tâche", key=f"task_{msg_index}", help="Créer une tâche d'apprentissage"):
-            st.session_state.mcp_action = ("task", msg_index, response)
-            st.rerun()
+        st.button(
+            "✅ Tâche", key=f"task_{msg_index}",
+            help="Créer une tâche d'apprentissage",
+            on_click=_set_mcp_action, args=("task", msg_index, response),
+        )
 
     with cols[2]:
-        if st.button("🧠 Quiz", key=f"quiz_{msg_index}", help="Tester mes connaissances"):
-            st.session_state.mcp_action = ("quiz", msg_index, response)
-            st.rerun()
+        st.button(
+            "🧠 Quiz", key=f"quiz_{msg_index}",
+            help="Tester mes connaissances",
+            on_click=_set_mcp_action, args=("quiz", msg_index, response),
+        )
 
 
 def _handle_mcp_action():
     """
     Traite l'action MCP en attente (note, tâche ou quiz).
     Affiché sous le dernier message assistant.
+
+    Architecture en 3 phases :
+      1. Flash message (feedback du run précédent) → toast + panneau avec bouton OK
+      2. Résultat quiz (correction en cours) → affiché avec boutons suite
+      3. Panneau d'action (formulaire) → affiché si mcp_action défini
     """
+
+    # ── Phase 1 : Flash message (feedback d'une action précédente) ───────
+    if st.session_state.mcp_flash:
+        flash = st.session_state.mcp_flash
+        # Toast natif Streamlit (disparaît tout seul après quelques secondes)
+        if flash.get("type") == "success":
+            st.toast(flash["message"], icon="✅")
+        else:
+            st.toast(flash["message"], icon="❌")
+        # Panneau avec bouton OK pour libérer l'espace
+        st.markdown('<div class="mcp-panel">', unsafe_allow_html=True)
+        if flash.get("type") == "success":
+            st.markdown(
+                f'<div class="mcp-success">{flash["message"]}</div>',
+                unsafe_allow_html=True
+            )
+            if flash.get("detail"):
+                st.markdown(flash["detail"])
+        else:
+            st.markdown(
+                f'<div class="mcp-error">{flash["message"]}</div>',
+                unsafe_allow_html=True
+            )
+        st.button("OK", key="flash_dismiss",
+                  on_click=lambda: st.session_state.update(mcp_flash=None))
+        st.markdown("</div>", unsafe_allow_html=True)
+        return
+
+    # ── Phase 2 : Résultat quiz (correction affichée, en attente de suite) ─
+    if st.session_state.quiz_result:
+        qr = st.session_state.quiz_result
+        st.markdown('<div class="mcp-panel">', unsafe_allow_html=True)
+        st.markdown("**🧠 Résultat du quiz**")
+
+        emoji = "✅" if qr["is_correct"] else "❌"
+        st.markdown(f"**{emoji} {qr['result']}**")
+        st.markdown(f"*{qr['explanation']}*")
+
+        score = qr["score_global"]
+        st.markdown(
+            f'<div class="mcp-success">Score : {score["correct"]}/{score["total"]} ({score["pourcentage"]})</div>',
+            unsafe_allow_html=True
+        )
+
+        col1, col2 = st.columns([2, 2])
+        with col1:
+            if st.button("🎲 Question suivante", key="quiz_next_after_result"):
+                # Charger directement une nouvelle question avec les mêmes prefs
+                prefs = st.session_state.quiz_prefs
+                q = _get_unique_question(
+                    category=prefs.get("category", "aléatoire"),
+                    difficulty=prefs.get("difficulty", "aléatoire"),
+                )
+                st.session_state.quiz_result = None
+                st.session_state.quiz_state = q
+                st.session_state.mcp_action = ("quiz", 0, "")
+                st.rerun()
+        with col2:
+            if st.button("🏁 Terminer le quiz", key="quiz_finish"):
+                st.session_state.quiz_result = None
+                st.session_state.quiz_state = None
+                st.session_state.mcp_action = None
+                st.rerun()
+
+        st.markdown("</div>", unsafe_allow_html=True)
+        return
+
+    # ── Phase 3 : Panneau d'action MCP (formulaire) ─────────────────────
     if not st.session_state.mcp_action:
         return
 
@@ -667,22 +867,21 @@ def _handle_mcp_action():
                     tags=tags,
                 ))
                 if result.get("success"):
-                    st.markdown(
-                        f'<div class="mcp-success">✅ Note "{title}" sauvegardée !</div>',
-                        unsafe_allow_html=True
-                    )
-                    st.markdown(f'`{result["path"]}`')
-                    st.session_state.mcp_action = None
-                    st.rerun()
+                    st.session_state.mcp_flash = {
+                        "type": "success",
+                        "message": f'✅ Note "{title}" sauvegardée !',
+                        "detail": f'`{result["path"]}`',
+                    }
                 else:
-                    st.markdown(
-                        f'<div class="mcp-error">❌ {result.get("error")}</div>',
-                        unsafe_allow_html=True
-                    )
-        with col2:
-            if st.button("Annuler", key="note_cancel"):
+                    st.session_state.mcp_flash = {
+                        "type": "error",
+                        "message": f'❌ {result.get("error")}',
+                    }
                 st.session_state.mcp_action = None
                 st.rerun()
+        with col2:
+            st.button("Annuler", key="note_cancel",
+                      on_click=lambda: st.session_state.update(mcp_action=None))
 
     elif action == "task":
         # ── Création d'une tâche ──
@@ -718,28 +917,27 @@ def _handle_mcp_action():
                 if result.get("success"):
                     tasks_data = json.loads(_list_tasks(filter_done="a_faire"))
                     nb = tasks_data.get("stats", {}).get("a_faire", "?")
-                    st.markdown(
-                        f'<div class="mcp-success">✅ Tâche créée ! ({nb} tâche(s) à faire)</div>',
-                        unsafe_allow_html=True
-                    )
-                    st.session_state.mcp_action = None
-                    st.rerun()
+                    st.session_state.mcp_flash = {
+                        "type": "success",
+                        "message": f'✅ Tâche "{task_title}" créée ! ({nb} tâche(s) à faire)',
+                    }
                 else:
-                    st.markdown(
-                        f'<div class="mcp-error">❌ {result.get("error")}</div>',
-                        unsafe_allow_html=True
-                    )
-        with col2:
-            if st.button("Annuler", key="task_cancel"):
+                    st.session_state.mcp_flash = {
+                        "type": "error",
+                        "message": f'❌ {result.get("error")}',
+                    }
                 st.session_state.mcp_action = None
                 st.rerun()
+        with col2:
+            st.button("Annuler", key="task_cancel",
+                      on_click=lambda: st.session_state.update(mcp_action=None))
 
     elif action == "quiz":
         # ── Quiz interactif ──
         st.markdown("**🧠 Tester mes connaissances**")
 
         if not st.session_state.quiz_state:
-            # Nouvelle question
+            # Choix de catégorie et difficulté
             col_cat, col_diff = st.columns(2)
             with col_cat:
                 cat = st.selectbox(
@@ -757,15 +955,23 @@ def _handle_mcp_action():
             col1, col2 = st.columns([1, 4])
             with col1:
                 if st.button("🎲 Question !", key="quiz_start"):
-                    q = json.loads(_get_question(category=cat, difficulty=diff))
+                    # Reset automatique du score à chaque nouvelle partie
+                    from mcp_quiz import SCORES_FILE
+                    SCORES_FILE.write_text(
+                        json.dumps({"total": 0, "correct": 0, "history": []},
+                                   ensure_ascii=False, indent=2),
+                        encoding="utf-8"
+                    )
+                    st.session_state.quiz_asked_ids = set()
+                    q = _get_unique_question(category=cat, difficulty=diff)
                     st.session_state.quiz_state = q
+                    st.session_state.quiz_prefs = {"category": cat, "difficulty": diff}
                     st.rerun()
             with col2:
-                if st.button("Annuler", key="quiz_cancel_init"):
-                    st.session_state.mcp_action = None
-                    st.rerun()
+                st.button("Annuler", key="quiz_cancel_init",
+                          on_click=lambda: st.session_state.update(mcp_action=None, quiz_state=None))
         else:
-            # Question en cours
+            # Question en cours — affichage et réponse
             q = st.session_state.quiz_state
             st.markdown(f"**{q['question']}**")
             for choice in q["choices"]:
@@ -784,20 +990,20 @@ def _handle_mcp_action():
                         question_id=q["question_id"],
                         answer=answer,
                     ))
-                    score = result["score_global"]
-                    emoji = "✅" if result["is_correct"] else "❌"
-                    st.markdown(f"**{emoji} {result['result']}**")
-                    st.markdown(f"*{result['explanation']}*")
-                    st.markdown(
-                        f'<div class="mcp-success">Score : {score["correct"]}/{score["total"]} ({score["pourcentage"]})</div>',
-                        unsafe_allow_html=True
-                    )
+                    # Stocker le résultat pour affichage persistant
+                    st.session_state.quiz_result = result
                     st.session_state.quiz_state = None
                     st.session_state.mcp_action = None
                     st.rerun()
             with col2:
                 if st.button("⏭️ Autre question", key="quiz_next"):
-                    st.session_state.quiz_state = None
+                    # Charger directement une nouvelle question
+                    prefs = st.session_state.quiz_prefs
+                    q_new = _get_unique_question(
+                        category=prefs.get("category", "aléatoire"),
+                        difficulty=prefs.get("difficulty", "aléatoire"),
+                    )
+                    st.session_state.quiz_state = q_new
                     st.rerun()
 
     st.markdown("</div>", unsafe_allow_html=True)
