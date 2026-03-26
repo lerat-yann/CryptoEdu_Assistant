@@ -363,15 +363,20 @@ def create_google_doc(
     tags: str = "",
 ) -> dict:
     """
-    Crée un Google Doc dans le Drive de l'utilisateur avec le contenu fourni.
+    Crée un Google Doc bien formaté dans le Drive de l'utilisateur.
 
-    Analogie : comme un assistant qui écrit une note dans votre carnet personnel
-    (ici, votre Google Drive) au lieu de sur un post-it local.
+    Analogie : comme un assistant qui rédige une note propre dans votre carnet
+    (ici, votre Google Drive) — avec titres, paragraphes et mise en forme —
+    au lieu de griffonner sur un post-it local.
+
+    L'API Google Docs fonctionne par « peinture par numéros » :
+    1. On insère TOUT le texte brut d'un coup (un seul insertText)
+    2. On applique le formatage par-dessus en ciblant les positions de caractères
 
     Args:
         title   : Titre du document
-        content : Contenu en texte (sera converti en paragraphes)
-        tags    : Tags optionnels (ajoutés en bas du doc)
+        content : Contenu (peut contenir du markdown basique)
+        tags    : Tags optionnels (séparés par des virgules)
 
     Returns:
         dict avec clés : success (bool), message (str), doc_url (str optionnel)
@@ -385,7 +390,7 @@ def create_google_doc(
         "Content-Type": "application/json",
     }
 
-    # Étape 1 : Créer un document vide via Google Docs API
+    # ── Étape 1 : Créer un document vide ─────────────────────────────────
     try:
         create_resp = requests.post(
             "https://docs.googleapis.com/v1/documents",
@@ -410,8 +415,7 @@ def create_google_doc(
     except Exception as e:
         return {"success": False, "error": f"Erreur création : {str(e)}"}
 
-    # Étape 2 : Insérer le contenu via batchUpdate
-    # On construit le texte complet puis on l'insère d'un coup
+    # ── Étape 2 : Préparer le contenu structuré ──────────────────────────
     from datetime import datetime
     now = datetime.now()
     date_str = now.strftime("%d/%m/%Y à %H:%M")
@@ -419,62 +423,206 @@ def create_google_doc(
     tags_line = ""
     if tags:
         tags_list = [t.strip() for t in tags.split(",") if t.strip()]
-        tags_line = "\nTags : " + ", ".join(f"#{tag}" for tag in tags_list) + "\n"
+        tags_line = "Tags : " + ", ".join(f"#{tag}" for tag in tags_list)
 
-    full_text = (
-        f"{title}\n\n"
-        f"📅 {date_str} | 🤖 Généré par CryptoEdu Assistant\n"
-        f"{tags_line}"
-        "─" * 50 + "\n\n"
-        f"{content}\n\n"
-        "─" * 50 + "\n"
-        "Note sauvegardée depuis CryptoEdu Assistant\n"
-        "⚠️ Contenu éducatif uniquement — aucun conseil d'investissement.\n"
-    )
+    # Convertir le markdown en texte propre + collecter les zones à formater
+    clean_content = _markdown_to_plain_text(content)
 
-    # L'API Google Docs insère du texte à un index (1 = début du document)
-    requests_body = [
-        {
-            "insertText": {
-                "location": {"index": 1},
-                "text": full_text,
-            }
+    # Construire les blocs de texte avec leurs rôles
+    # Chaque bloc = (texte, rôle) où rôle = "title", "subtitle", "body", "footer"
+    blocks = []
+    blocks.append((title, "title"))
+    blocks.append((f"📅 {date_str}  |  🤖 Généré par CryptoEdu Assistant", "subtitle"))
+    if tags_line:
+        blocks.append((tags_line, "subtitle"))
+    blocks.append(("", "separator"))  # ligne vide de séparation
+    blocks.append((clean_content, "body"))
+    blocks.append(("", "separator"))
+    blocks.append(("Note sauvegardée depuis CryptoEdu Assistant", "footer"))
+    blocks.append(("⚠️ Contenu éducatif uniquement — aucun conseil d'investissement.", "footer"))
+
+    # ── Étape 3 : Assembler le texte complet et les requêtes de formatage ─
+    # L'API Google Docs indexe les caractères à partir de 1 (position 1 = début)
+    # On insère tout le texte d'abord, puis on applique le style par-dessus.
+
+    full_text = ""
+    format_ranges = []  # [(start, end, style_type), ...]
+
+    for block_text, role in blocks:
+        if role == "separator":
+            full_text += "\n"
+            continue
+
+        start = len(full_text) + 1  # +1 car Google Docs indexe à partir de 1
+        full_text += block_text + "\n"
+        end = len(full_text) + 1
+
+        format_ranges.append((start, end, role))
+
+    # Ajouter un saut de ligne final
+    full_text += "\n"
+
+    # ── Étape 4 : Construire les requêtes batchUpdate ─────────────────────
+    batch_requests = []
+
+    # 4a. Insérer tout le texte d'un coup
+    batch_requests.append({
+        "insertText": {
+            "location": {"index": 1},
+            "text": full_text,
         }
-    ]
+    })
 
+    # 4b. Appliquer le formatage
+    for start, end, style_type in format_ranges:
+        if style_type == "title":
+            # Titre principal — HEADING_1 + couleur orange
+            batch_requests.append({
+                "updateParagraphStyle": {
+                    "range": {"startIndex": start, "endIndex": end},
+                    "paragraphStyle": {"namedStyleType": "HEADING_1"},
+                    "fields": "namedStyleType",
+                }
+            })
+            batch_requests.append({
+                "updateTextStyle": {
+                    "range": {"startIndex": start, "endIndex": end},
+                    "textStyle": {
+                        "foregroundColor": {
+                            "color": {"rgbColor": {"red": 0.969, "green": 0.576, "blue": 0.102}}
+                        }
+                    },
+                    "fields": "foregroundColor",
+                }
+            })
+
+        elif style_type == "subtitle":
+            # Sous-titre — petit, gris
+            batch_requests.append({
+                "updateTextStyle": {
+                    "range": {"startIndex": start, "endIndex": end},
+                    "textStyle": {
+                        "fontSize": {"magnitude": 9, "unit": "PT"},
+                        "foregroundColor": {
+                            "color": {"rgbColor": {"red": 0.5, "green": 0.5, "blue": 0.5}}
+                        },
+                    },
+                    "fields": "fontSize,foregroundColor",
+                }
+            })
+
+        elif style_type == "body":
+            # Corps — taille normale, noir
+            batch_requests.append({
+                "updateTextStyle": {
+                    "range": {"startIndex": start, "endIndex": end},
+                    "textStyle": {
+                        "fontSize": {"magnitude": 11, "unit": "PT"},
+                    },
+                    "fields": "fontSize",
+                }
+            })
+
+        elif style_type == "footer":
+            # Footer — petit, gris, italic
+            batch_requests.append({
+                "updateTextStyle": {
+                    "range": {"startIndex": start, "endIndex": end},
+                    "textStyle": {
+                        "fontSize": {"magnitude": 8, "unit": "PT"},
+                        "italic": True,
+                        "foregroundColor": {
+                            "color": {"rgbColor": {"red": 0.5, "green": 0.5, "blue": 0.5}}
+                        },
+                    },
+                    "fields": "fontSize,italic,foregroundColor",
+                }
+            })
+
+    # ── Étape 5 : Envoyer le batchUpdate ──────────────────────────────────
     try:
         update_resp = requests.post(
             f"https://docs.googleapis.com/v1/documents/{doc_id}:batchUpdate",
             headers=headers,
-            json={"requests": requests_body},
-            timeout=15,
+            json={"requests": batch_requests},
+            timeout=30,
         )
 
         if update_resp.status_code == 200:
             return {
                 "success": True,
-                "message": f"Document créé dans votre Google Drive !",
+                "message": "Document créé dans votre Google Drive !",
                 "doc_url": doc_url,
                 "doc_id": doc_id,
             }
         else:
-            # Le doc a été créé mais le contenu n'a pas pu être inséré
+            error_detail = update_resp.json().get("error", {}).get("message", update_resp.text[:300])
             return {
                 "success": True,
-                "message": f"Document créé (contenu partiel) dans votre Drive.",
+                "message": "Document créé (formatage partiel).",
                 "doc_url": doc_url,
                 "doc_id": doc_id,
-                "warning": "Le contenu n'a pas pu être entièrement inséré.",
+                "warning": f"Formatage incomplet : {error_detail}",
             }
 
     except Exception as e:
         return {
             "success": True,
-            "message": "Document créé dans votre Drive (contenu vide).",
+            "message": "Document créé dans votre Drive (sans formatage).",
             "doc_url": doc_url,
             "doc_id": doc_id,
-            "warning": f"Erreur insertion contenu : {str(e)}",
+            "warning": f"Erreur formatage : {str(e)}",
         }
+
+
+def _markdown_to_plain_text(text: str) -> str:
+    """
+    Convertit du markdown basique en texte propre pour Google Docs.
+    Supprime la syntaxe markdown tout en gardant la structure lisible.
+
+    Google Docs n'interprète pas le markdown, donc on nettoie :
+    - ## Headers → texte en majuscules avec saut de ligne
+    - **bold** → texte sans astérisques (le gras serait trop complexe à indexer)
+    - *italic* → texte sans astérisques
+    - `code` → texte sans backticks
+    - - liste → • liste (puce Unicode)
+    - Liens [texte](url) → texte (url)
+    """
+    import re
+
+    # Headers markdown → texte en majuscules + saut de ligne
+    text = re.sub(r'^#{1,3}\s+(.+)$',
+                  lambda m: m.group(1).upper() + "\n",
+                  text, flags=re.MULTILINE)
+
+    # Bold **text** ou __text__
+    text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)
+    text = re.sub(r'__(.+?)__', r'\1', text)
+
+    # Italic *text* ou _text_
+    text = re.sub(r'\*(.+?)\*', r'\1', text)
+    text = re.sub(r'(?<!\w)_(.+?)_(?!\w)', r'\1', text)
+
+    # Inline code `code`
+    text = re.sub(r'`(.+?)`', r'\1', text)
+
+    # Liens [texte](url)
+    text = re.sub(r'\[(.+?)\]\((.+?)\)', r'\1 (\2)', text)
+
+    # Listes à puces markdown → puces Unicode
+    text = re.sub(r'^[\-\*]\s+', '  • ', text, flags=re.MULTILINE)
+
+    # Listes numérotées avec emoji (1️⃣, 2️⃣...) — garder tels quels
+    # Supprimer les lignes de séparateurs markdown (---, ***)
+    text = re.sub(r'^[\-\*]{3,}\s*$', '', text, flags=re.MULTILINE)
+
+    # Nettoyer les sauts de ligne multiples (max 2)
+    text = re.sub(r'\n{3,}', '\n\n', text)
+
+    # Supprimer les espaces en fin de ligne
+    text = re.sub(r' +$', '', text, flags=re.MULTILINE)
+
+    return text.strip()
 
 
 # ══════════════════════════════════════════════════════════════════════════════
