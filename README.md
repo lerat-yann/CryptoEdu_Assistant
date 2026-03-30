@@ -1,92 +1,122 @@
 # 🪙 CryptoEdu Assistant
 
-**Assistant éducatif sur les cryptomonnaies pour débutants francophones.**
+**Les débutants francophones perdent des heures à chercher des informations fiables sur les cryptomonnaies, noyés entre les arnaques, le jargon technique et les "conseils" douteux sur les réseaux sociaux.**
 
-> ⚠️ Cet assistant est **éducatif uniquement**. Il ne donne aucun conseil d'investissement.
-> Les crypto-actifs sont des investissements spéculatifs à haut risque ([AMF](https://www.amf-france.org)).
+CryptoEdu Assistant résout ce problème : un chatbot multi-agent qui éduque sans jamais prescrire, alimenté par des sources officielles (AMF, Coinbase Learn), avec des données de marché en temps réel et un système de guardrails qui refuse tout conseil d'investissement.
+
+> ⚠️ **Avertissement** — Cet assistant est **éducatif uniquement**. Il ne donne aucun conseil d'investissement. Les crypto-actifs sont des investissements spéculatifs à haut risque ([AMF](https://www.amf-france.org)).
 
 ---
 
-## Présentation
+### 🔗 [Tester la démo live sur Streamlit Cloud](https://cryptoeduassistant-pmwwyo8ny659behdtaou8g.streamlit.app)
 
-CryptoEdu Assistant est un chatbot multi-agent qui aide les débutants francophones à comprendre les cryptomonnaies en toute sécurité. Il combine un pipeline RAG alimenté par des sources officielles (AMF, Coinbase Learn, CoinGecko), des données de marché en temps réel, et un système de guardrails qui refuse systématiquement tout conseil d'investissement.
+<!-- Remplacez par vos propres captures d'écran dans le dossier assets/ -->
+<!-- ![Screenshot de l'interface](assets/screenshot_main.png) -->
 
-**Philosophie** : éduquer sans jamais prescrire. Chaque question reçoit une réponse pédagogique sourcée ; chaque demande de conseil est poliment redirigée vers une explication des critères d'évaluation.
+---
+
+## Le problème
+
+Un débutant francophone qui veut comprendre les cryptomonnaies fait face à trois obstacles : des sources en anglais ou non vérifiées, des influenceurs qui poussent à l'achat, et un jargon technique (seed phrase, DeFi, gas fees, CEX vs DEX…) qui décourage. Les guides officiels de l'AMF existent, mais ils sont longs et dispersés.
+
+## La solution
+
+CryptoEdu Assistant concentre les meilleures sources éducatives dans un chatbot accessible, qui :
+
+- **Répond en français** avec un ton pédagogique adapté aux débutants
+- **Cite ses sources** (AMF, Coinbase Learn, CoinGecko) grâce à un pipeline RAG
+- **Refuse les conseils d'investissement** automatiquement, via un système de guardrails à 3 couches
+- **Donne les prix en temps réel** (CoinGecko API) à titre informatif uniquement
+- **Propose des outils d'apprentissage** : notes sauvegardables, tâches de suivi, quiz interactif
+- **S'intègre à Google** (OAuth) : envoi de récapitulatifs par Gmail, sauvegarde dans Google Docs
 
 ---
 
 ## Fonctionnalités
 
-### Agents spécialisés
-- **Agent Éducation** — Répond aux questions conceptuelles via le corpus RAG (blockchain, wallets, DeFi, NFT, stablecoins, réglementation…)
-- **Agent Marché** — Données en temps réel via l'API CoinGecko : prix, variations, capitalisation, volumes
-- **Agent Risques** — Détecte les demandes de conseil, refuse poliment, redirige vers du contenu éducatif
+### 🤖 3 agents spécialisés
 
-### Outils déterministes (sans appel LLM)
+| Agent | Rôle | Source |
+|-------|------|--------|
+| **Éducation** | Questions conceptuelles (blockchain, wallets, DeFi, NFT, stablecoins, réglementation…) | Corpus RAG (7 docs, 106 chunks) |
+| **Marché** | Prix, variations, capitalisation, volumes en temps réel | API CoinGecko |
+| **Risques** | Détection des demandes de conseil → refus poli + redirection éducative | Guardrails internes |
+
+### 🔧 3 outils déterministes (zéro appel LLM)
+
 - **Checklist débutant** — Les 7 étapes pour démarrer en crypto
 - **Guide premier achat** — Pas-à-pas du dépôt à la vérification
 - **Bonnes pratiques wallet** — Seed phrase, hot/cold wallet, erreurs courantes
 
-### MCP local (outils post-réponse)
-- **Notes** — Sauvegarde des réponses en fichiers Markdown (`notes_crypto/`)
-- **Tâches** — Liste d'apprentissage avec priorités et catégories (`tasks_crypto.json`)
-- **Quiz** — 13 questions, 6 catégories, 3 niveaux de difficulté (`quiz_crypto.json`)
+### 📋 MCP local (outils post-réponse)
 
-### Guardrails à 3 couches
+- **💾 Notes** — Sauvegarde en Markdown local ou Google Docs (si connecté)
+- **✅ Tâches** — Liste d'apprentissage avec priorités et catégories
+- **🧠 Quiz** — 40 questions, 6 catégories, 3 niveaux de difficulté
+- **📧 Email** — Récapitulatif de conversation envoyé par Gmail (OAuth Google)
+
+### 🛡️ Guardrails à 3 couches
+
 1. **Mots-clés bloquants** — Arnaques, manipulation, hors-sujet flagrant → blocage immédiat
 2. **Mots-clés crypto** — Termes éducatifs évidents → passage sans appel LLM
-3. **Classifieur LLM** — Cas ambigus, avec fail-safe en mode passage (un faux négatif est moins grave qu'un débutant légitime bloqué)
+3. **Classifieur LLM** — Cas ambigus, fail-safe en mode passage (un faux négatif est moins grave qu'un débutant légitime bloqué)
 
-### Interface Streamlit
-- Dark mode (Space Mono + DM Sans, palette orange/vert)
+### 🔐 Intégration Google OAuth
+
+- Connexion via Google (OAuth2 avec `streamlit-oauth`)
+- **📧 Gmail** : envoi du récapitulatif de conversation formaté HTML
+- **📄 Google Docs** : sauvegarde des notes dans le Drive de l'utilisateur
+- Fallback local automatique si l'utilisateur n'est pas connecté
+
+### 🎨 Interface Streamlit
+
+- Dark mode (Space Mono + DM Sans, palette orange/vert crypto)
 - Multi-sessions avec titres générés par LLM
 - Historique contextuel (3 derniers échanges pour les questions de suivi)
-- Sidebar : conversations, avertissement AMF, exemples cliquables, stack technique, liens officiels
-- Mode développeur : badge modèle, bouton d'injection de test MCP
-- Boutons MCP sous chaque réponse : 💾 Sauvegarder · ✅ Tâche · 🧠 Quiz
+- Mode développeur : badge modèle, injection de test MCP
+- Sidebar complète : conversations, profil Google, notes, tâches, liens officiels
 
 ---
 
 ## Architecture
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│                     app.py (Streamlit)                       │
-│          Dark mode · Multi-sessions · Boutons MCP            │
-└──────────────┬───────────────────────────┬───────────────────┘
-               │                           │
-               ▼                           ▼
-┌──────────────────────────┐   ┌──────────────────────────────┐
-│   crypto_manager.py      │   │   MCP local                  │
-│   Orchestrateur (6 outils)│   │   mcp_notes.py (Markdown)   │
-│   + guardrails.py        │   │   mcp_tasks.py (JSON)        │
-└──────┬───────┬───────┬───┘   │   mcp_quiz.py  (JSON)        │
-       │       │       │       └──────────────────────────────┘
-       ▼       ▼       ▼
+┌───────────────────────────────────────────────────────────────────┐
+│                        app.py (Streamlit)                         │
+│        Dark mode · Multi-sessions · Boutons MCP · OAuth Google    │
+└────────────┬──────────────────────┬──────────────┬────────────────┘
+             │                      │              │
+             ▼                      ▼              ▼
+┌─────────────────────────┐  ┌────────────┐  ┌──────────────────┐
+│   crypto_manager.py     │  │ MCP local  │  │ google_oauth.py  │
+│   Orchestrateur 6 outils│  │ Notes  .md │  │ OAuth2 + Gmail   │
+│   + guardrails.py       │  │ Tâches .json│  │ + Google Docs    │
+└────┬──────┬──────┬──────┘  │ Quiz  .json│  └──────────────────┘
+     │      │      │         └────────────┘
+     ▼      ▼      ▼
 ┌────────┐ ┌────────┐ ┌────────┐
 │Éducation│ │ Marché │ │Risques │
 │  (RAG) │ │(Gecko) │ │(Guard) │
-└────┬───┘ └────┬───┘ └────────┘
-     │          │
-     ▼          ▼
-┌────────┐ ┌────────┐
+└───┬────┘ └───┬────┘ └────────┘
+    │          │
+    ▼          ▼
+┌────────┐ ┌─────────┐
 │ChromaDB│ │CoinGecko│
-│+ BM25  │ │  API   │
-└────────┘ └────────┘
+│+ BM25  │ │  API    │
+└────────┘ └─────────┘
 ```
 
-### Cascade de modèles
+### Cascade de modèles (double provider)
 
-L'assistant utilise exclusivement des modèles gratuits via OpenRouter, organisés en cascade automatique. Si un modèle atteint sa limite de requêtes (429), est introuvable (404), ou ne supporte pas le format (400), le système bascule automatiquement vers le suivant :
+L'assistant utilise **Groq** en priorité (rapide, bon tool-calling) avec **OpenRouter** en fallback automatique :
 
-| Position | Modèle | Rôle |
+| Provider | Modèle | Rôle |
 |----------|--------|------|
-| 1 | `meta-llama/llama-3.3-70b-instruct:free` | Principal — multilingue, tool-calling fiable |
-| 2 | `mistralai/mistral-small-3.1-24b-instruct:free` | Backup — bon pour agents/RAG |
-| 3 | `google/gemini-flash-1.5:free` | Backup — contexte long |
-| 4 | `qwen/qwen3-14b:free` | Dernier recours — raisonnement |
+| **Groq** (principal) | `kimi-k2-instruct` | Main — rapide, tool-calling fiable |
+| **Groq** (rapide) | `llama-3.1-8b-instant` | Classifieur guardrails, génération de titres |
+| **OpenRouter** (fallback) | `openrouter/free` | Secours si Groq rate-limité (429/403/400) |
 
-La cascade se réinitialise automatiquement entre chaque question pour repartir du meilleur modèle.
+Le switch est automatique sur erreur, avec un cooldown de 2 minutes avant de retenter Groq.
 
 ---
 
@@ -95,57 +125,60 @@ La cascade se réinitialise automatiquement entre chaque question pour repartir 
 | Composant | Technologie |
 |-----------|-------------|
 | Agents | SDK `openai-agents` (orchestration, tool-calling, guardrails) |
-| LLM | OpenRouter free tier (4 modèles en cascade) |
+| LLM principal | **Groq** (kimi-k2-instruct + llama-3.1-8b-instant) |
+| LLM fallback | **OpenRouter** free tier |
 | RAG | LangChain + ChromaDB + BM25 (retriever hybride 50/50) |
 | Embeddings | HuggingFace `all-MiniLM-L6-v2` |
 | Données marché | CoinGecko API publique (sans clé) |
 | Interface | Streamlit (dark mode custom) |
-| MCP | `function_tool` local (notes Markdown, tâches JSON, quiz JSON) |
+| OAuth | `streamlit-oauth` (Google OAuth2 → Gmail + Docs) |
+| MCP | `function_tool` local (notes, tâches, quiz) |
 
 ---
 
-## Installation
+## Installation rapide
 
 ### Prérequis
-- Python 3.10+
-- Compte OpenRouter gratuit → [openrouter.ai](https://openrouter.ai/)
 
-### Étapes
+- Python 3.10+
+- Au moins une clé API : **Groq** (recommandé) et/ou **OpenRouter** (gratuit)
+
+### 3 commandes pour lancer
 
 ```bash
-# 1. Cloner le projet
-git clone https://github.com/<votre-repo>/cryptoedu-assistant.git
+git clone https://github.com/<votre-username>/cryptoedu-assistant.git
 cd cryptoedu-assistant
-
-# 2. Installer les dépendances
 pip install -r requirements.txt
+```
 
-# 3. Configurer la clé API
+Puis configurer les clés :
+
+```bash
 cp .env.example .env
-# Éditer .env et ajouter : OPENROUTER_API_KEY=sk-or-...
-
-# 4. Ajouter des documents au corpus RAG (optionnel)
-# Placer des PDF ou fichiers .txt dans le dossier docs_crypto/
-
-# 5. Lancer l'interface
-streamlit run app.py
-
-# Ou en mode CLI :
-python main.py
+# Éditer .env :
+#   GROQ_API_KEY=gsk_...          (prioritaire)
+#   OPENROUTER_API_KEY=sk-or-...  (fallback)
 ```
 
-### Dépendances principales
+Lancer :
 
+```bash
+streamlit run app.py          # Interface web
+# ou
+python main.py                # Mode CLI
 ```
-openai-agents
-langchain langchain-community langchain-openai langchain-huggingface langchain-chroma langchain-classic
-chromadb
-sentence-transformers
-streamlit
-python-dotenv
-requests
-rank-bm25
+
+### OAuth Google (optionnel)
+
+Pour activer Gmail + Google Docs, ajouter dans `.env` :
+
+```bash
+GOOGLE_CLIENT_ID=xxxx.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-xxxx
+GOOGLE_REDIRECT_URI=http://localhost:8501
 ```
+
+Sans ces clés, l'app fonctionne normalement — le bloc Google est simplement masqué.
 
 ---
 
@@ -153,23 +186,24 @@ rank-bm25
 
 ```
 cryptoedu-assistant/
-├── app.py                  # Interface Streamlit (dark mode, multi-sessions, MCP)
+├── app.py                  # Interface Streamlit (dark mode, multi-sessions, OAuth, MCP)
 ├── main.py                 # Interface CLI avec cascade automatique
-├── config.py               # Cascade OpenRouter, client, registre d'agents
+├── config.py               # Double provider Groq/OpenRouter, registre d'agents
 ├── crypto_manager.py       # Orchestrateur — 6 outils, guardrails
 ├── crypto_agents.py        # 3 agents + 3 outils déterministes + wrappers
 ├── guardrails.py           # Filtrage 3 couches (mots-clés + LLM classifieur)
 ├── rag_pipeline.py         # Pipeline RAG (LangChain + ChromaDB + BM25)
-├── mcp_notes.py            # MCP Notes — sauvegarde Markdown
+├── google_oauth.py         # OAuth2 Google + Gmail API + Google Docs API
+├── mcp_notes.py            # MCP Notes — sauvegarde Markdown / Google Docs
 ├── mcp_tasks.py            # MCP Tâches — apprentissage JSON
-├── mcp_quiz.py             # MCP Quiz — 13 questions, 6 catégories
-├── docs_crypto/            # Corpus RAG (PDF + TXT)
+├── mcp_quiz.py             # MCP Quiz — 40 questions, 6 catégories
+├── docs_crypto/            # Corpus RAG (7 documents PDF + TXT)
 ├── notes_crypto/           # Notes sauvegardées (générées)
 ├── tasks_crypto.json       # Tâches d'apprentissage (généré)
 ├── quiz_crypto.json        # Questions du quiz (généré au 1er lancement)
-├── quiz_scores.json        # Scores du quiz (généré)
-├── .env                    # Clé API OpenRouter
+├── .env.example            # Template des clés API
 ├── requirements.txt        # Dépendances Python
+├── assets/                 # Captures d'écran (à ajouter)
 └── README.md               # Ce fichier
 ```
 
@@ -181,12 +215,12 @@ cryptoedu-assistant/
 
 | Type | Exemple |
 |------|---------|
-| Débutant | *Par où commencer si je veux me lancer dans les cryptos ?* |
-| Éducatif | *C'est quoi une seed phrase et comment la protéger ?* |
-| Marché | *Quel est le prix actuel du Bitcoin et de l'Ethereum ?* |
-| Conceptuel | *Quelle différence entre un CEX et un DEX ?* |
-| Risques | *Quels sont les principaux risques des cryptomonnaies ?* |
-| Technique | *Comment fonctionne la blockchain ?* |
+| 🚀 Débutant | *Par où commencer si je veux me lancer dans les cryptos ?* |
+| 🔐 Sécurité | *C'est quoi une seed phrase et comment la protéger ?* |
+| 📈 Marché | *Quel est le prix actuel du Bitcoin et de l'Ethereum ?* |
+| 🔄 Conceptuel | *Quelle différence entre un CEX et un DEX ?* |
+| ⚠️ Risques | *Quels sont les principaux risques des cryptomonnaies ?* |
+| ⛓️ Technique | *Comment fonctionne la blockchain ?* |
 
 ### Comportement face aux demandes de conseil
 
@@ -198,12 +232,25 @@ L'assistant détecte automatiquement les demandes prescriptives et redirige :
 
 ---
 
+## Gestion des erreurs
+
+L'application est conçue pour ne **jamais crasher** face à l'utilisateur :
+
+- **Clé API manquante** → Message clair indiquant quelles clés configurer
+- **Rate limit LLM (429)** → Switch automatique vers le provider suivant
+- **Modèle introuvable (404)** → Cascade vers le modèle disponible
+- **CoinGecko timeout** → Message d'erreur propre, pas de stacktrace Python
+- **OAuth non configuré** → Bloc Google masqué, fonctionnement local intact
+- **Corpus RAG vide** → Message indiquant d'ajouter des documents dans `docs_crypto/`
+
+---
+
 ## Limites connues
 
-- **Free tier OpenRouter** : ~20 req/min par modèle, ~200 req/jour. La cascade (4 modèles) offre ~800 req/jour au total.
-- **Qualité variable** : les modèles gratuits peuvent parfois produire des réponses incomplètes ou mal formatées.
-- **RAG dépendant du corpus** : la qualité des réponses éducatives dépend des documents placés dans `docs_crypto/`.
-- **MCP local uniquement** : les notes, tâches et quiz sont stockés localement (pas de synchronisation cloud).
+- **Free tier Groq/OpenRouter** : limité en requêtes par minute. La cascade double-provider atténue le problème.
+- **Qualité variable** : les modèles gratuits peuvent parfois produire des réponses incomplètes.
+- **RAG dépendant du corpus** : la qualité des réponses éducatives dépend des documents dans `docs_crypto/`.
+- **OAuth Google en mode Test** : les utilisateurs doivent être ajoutés manuellement comme testeurs dans Google Cloud Console.
 - **CoinGecko API publique** : limitée en nombre de requêtes et sans données historiques avancées.
 
 ---
