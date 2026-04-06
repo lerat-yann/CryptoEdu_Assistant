@@ -15,7 +15,7 @@ from agents.exceptions import InputGuardrailTripwireTriggered
 from openai import RateLimitError, NotFoundError, BadRequestError, APIStatusError, APIConnectionError, AuthenticationError, PermissionDeniedError
 import config
 from core.crypto_manager import manager
-from mcp.mcp_notes import _save_note, _list_notes
+from mcp.mcp_notes import _save_note
 from mcp.mcp_tasks import _add_task, _list_tasks
 from mcp.mcp_quiz  import _get_question, _check_answer, _get_score, QUESTIONS as QUIZ_QUESTIONS
 from integrations.google_oauth import (
@@ -571,61 +571,6 @@ with st.sidebar:
             st.session_state.pending_question = exemple
 
     st.markdown("---")
-
-    # ── Mes notes & tâches (expanders) ──
-    try:
-        notes_data = json.loads(_list_notes())
-        notes_list = notes_data.get("notes", [])
-        notes_count = len(notes_list)
-    except Exception:
-        notes_list, notes_count = [], 0
-
-    try:
-        tasks_data = json.loads(_list_tasks(filter_done="toutes"))
-        tasks_list = tasks_data.get("tasks", [])
-        tasks_stats = tasks_data.get("stats", {})
-        tasks_count = tasks_stats.get("total", 0)
-    except Exception:
-        tasks_list, tasks_stats, tasks_count = [], {}, 0
-
-    with st.expander(f"📝 Mes notes ({notes_count})", expanded=False):
-        if notes_list:
-            for note in notes_list[:10]:
-                st.markdown(
-                    f"📄 **{note['title']}**  \n"
-                    f"<span style='font-size: 0.72rem; color: #6b7280;'>"
-                    f"{note['modified']} · {note['size_kb']} Ko</span>",
-                    unsafe_allow_html=True
-                )
-            if notes_count > 10:
-                st.caption(f"... et {notes_count - 10} autre(s)")
-        else:
-            st.caption("Aucune note. Utilisez 💾 sous une réponse.")
-
-    with st.expander(f"✅ Mes tâches ({tasks_count})", expanded=False):
-        if tasks_list:
-            done = tasks_stats.get("faites", 0)
-            pct = tasks_stats.get("progression", "0%")
-            st.markdown(
-                f"<span style='color: #00d395; font-size: 0.85rem;'>"
-                f"📊 {done}/{tasks_count} complétées ({pct})</span>",
-                unsafe_allow_html=True
-            )
-            for task in tasks_list[:10]:
-                icon = "✅" if task.get("done") else "⬜"
-                p_colors = {"haute": "#f87171", "normale": "#f7931a", "basse": "#6b7280"}
-                p_color = p_colors.get(task.get("priority", "normale"), "#6b7280")
-                style = "text-decoration: line-through; color: #6b7280;" if task.get("done") else ""
-                st.markdown(
-                    f"{icon} <span style='{style}'>{task['title']}</span> "
-                    f"<span style='font-size: 0.65rem; color: {p_color};'>"
-                    f"[{task.get('priority', '')}]</span>",
-                    unsafe_allow_html=True
-                )
-            if tasks_count > 10:
-                st.caption(f"... et {tasks_count - 10} autre(s)")
-        else:
-            st.caption("Aucune tâche. Utilisez ✅ sous une réponse.")
 
     st.markdown("---")
 
