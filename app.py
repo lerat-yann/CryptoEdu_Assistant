@@ -15,8 +15,7 @@ from agents.exceptions import InputGuardrailTripwireTriggered
 from openai import RateLimitError, NotFoundError, BadRequestError, APIStatusError, APIConnectionError, AuthenticationError, PermissionDeniedError
 import config
 from core.crypto_manager import manager
-from mcp.mcp_notes import _save_note
-from mcp.mcp_tasks import _add_task, _list_tasks
+
 from mcp.mcp_quiz  import _get_question, _check_answer, _get_score, QUESTIONS as QUIZ_QUESTIONS
 from integrations.google_oauth import (
     is_google_configured, is_user_logged_in, get_user_info,
@@ -649,10 +648,10 @@ with st.sidebar:
                 "content": (
                     "Ceci est une **réponse simulée** pour tester les boutons MCP "
                     "sans appel au LLM.\n\n"
-                    "Testez les 3 boutons ci-dessous :\n"
-                    "- 💾 Sauvegarder → crée un fichier Markdown dans `notes_crypto/`\n"
-                    "- ✅ Tâche → ajoute une entrée dans `tasks_crypto.json`\n"
-                    "- 🧠 Quiz → pose une question sur les cryptos"
+                    "Testez les boutons ci-dessous :\n"
+                    "- 💾 Google Docs → sauvegarde dans votre Google Drive (connexion Google requise)\n"
+                    "- 🧠 Quiz → pose une question sur les cryptos\n"
+                    "- 📧 Email → envoie un récapitulatif par Gmail (connexion Google requise)"
                 ),
                 "model": "test_inject",
             })
@@ -679,60 +678,48 @@ def _set_mcp_action(action: str, msg_index: int, response: str):
 def _render_mcp_bar(msg_index: int, response: str):
     """
     Affiche les boutons MCP sous une réponse de l'assistant.
-    4 boutons : 💾 Sauvegarder, ✅ Tâche, 🧠 Quiz, 📧 Email (si connecté Google).
-
-    Utilise on_click callbacks au lieu de if st.button + st.rerun()
-    pour éviter les problèmes de timing Streamlit : le callback s'exécute
-    AVANT le rerun, garantissant que mcp_action est bien défini.
+    - Non connecté Google : 🧠 Quiz uniquement + message d'incitation
+    - Connecté Google    : 💾 Google Docs, 🧠 Quiz, 📧 Email
     """
-    # Ne pas afficher les boutons si une action MCP est déjà en cours,
-    # ou si un feedback/résultat est en cours d'affichage
     if st.session_state.mcp_action or st.session_state.mcp_flash or st.session_state.quiz_result:
         return
 
     google_connected = is_user_logged_in()
 
-    # Adapter le label 💾 selon l'état de connexion Google
     if google_connected:
-        save_label = "💾 Google Docs"
-        save_help = "Sauvegarder dans votre Google Drive"
-    else:
-        save_label = "💾 Sauvegarder"
-        save_help = "Sauvegarder en note Markdown (connectez-vous à Google pour Google Docs)"
-
-    # Layout : 4 boutons si connecté Google, 3 sinon
-    if google_connected:
-        cols = st.columns([2, 2, 2, 2, 1])
-    else:
         cols = st.columns([2, 2, 2, 3])
-
-    with cols[0]:
-        st.button(
-            save_label, key=f"note_{msg_index}",
-            help=save_help,
-            on_click=_set_mcp_action, args=("note", msg_index, response),
-        )
-
-    with cols[1]:
-        st.button(
-            "✅ Tâche", key=f"task_{msg_index}",
-            help="Créer une tâche d'apprentissage",
-            on_click=_set_mcp_action, args=("task", msg_index, response),
-        )
-
-    with cols[2]:
-        st.button(
-            "🧠 Quiz", key=f"quiz_{msg_index}",
-            help="Tester mes connaissances",
-            on_click=_set_mcp_action, args=("quiz", msg_index, response),
-        )
-
-    if google_connected:
-        with cols[3]:
+        with cols[0]:
+            st.button(
+                "💾 Google Docs", key=f"note_{msg_index}",
+                help="Sauvegarder dans votre Google Drive",
+                on_click=_set_mcp_action, args=("note", msg_index, response),
+            )
+        with cols[1]:
+            st.button(
+                "🧠 Quiz", key=f"quiz_{msg_index}",
+                help="Tester mes connaissances",
+                on_click=_set_mcp_action, args=("quiz", msg_index, response),
+            )
+        with cols[2]:
             st.button(
                 "📧 Email", key=f"email_{msg_index}",
                 help="Envoyer un récapitulatif par email",
                 on_click=_set_mcp_action, args=("email", msg_index, response),
+            )
+    else:
+        cols = st.columns([2, 5])
+        with cols[0]:
+            st.button(
+                "🧠 Quiz", key=f"quiz_{msg_index}",
+                help="Tester mes connaissances",
+                on_click=_set_mcp_action, args=("quiz", msg_index, response),
+            )
+        with cols[1]:
+            st.markdown(
+                "<span style='color: #6b7280; font-size: 0.78rem;'>"
+                "💡 Connectez-vous à Google pour sauvegarder en Google Docs et envoyer par email."
+                "</span>",
+                unsafe_allow_html=True,
             )
 
 
@@ -822,19 +809,8 @@ def _handle_mcp_action():
     st.markdown('<div class="mcp-panel">', unsafe_allow_html=True)
 
     if action == "note":
-        # ── Sauvegarde : Google Docs si connecté, sinon Markdown local ──
-        google_connected = is_user_logged_in()
-
-        if google_connected:
-            st.markdown("**💾 Sauvegarder dans Google Docs**")
-        else:
-            st.markdown("**💾 Sauvegarder cette réponse en note**")
-            st.markdown(
-                "<span style='color: #6b7280; font-size: 0.78rem;'>"
-                "💡 Connectez-vous à Google pour sauvegarder dans Google Docs."
-                "</span>",
-                unsafe_allow_html=True,
-            )
+        # ── Sauvegarde dans Google Docs ──
+        st.markdown("**💾 Sauvegarder dans Google Docs**")
 
         title = st.text_input(
             "Titre de la note",
@@ -848,47 +824,26 @@ def _handle_mcp_action():
         )
         col1, col2 = st.columns([1, 4])
         with col1:
-            confirm_label = "💾 Google Docs" if google_connected else "💾 Confirmer"
-            if st.button(confirm_label, key="note_confirm"):
-                if google_connected:
-                    # ── Sauvegarde Google Docs ──
-                    result = create_google_doc(
-                        title=title,
-                        content=response,
-                        tags=tags,
-                    )
-                    if result.get("success"):
-                        doc_url = result.get("doc_url", "")
-                        flash_msg = f'✅ Document "{title}" créé dans votre Google Drive !'
-                        flash_detail = f'[Ouvrir le document]({doc_url})' if doc_url else None
-                        st.session_state.mcp_flash = {
-                            "type": "success",
-                            "message": flash_msg,
-                            "detail": flash_detail,
-                        }
-                    else:
-                        st.session_state.mcp_flash = {
-                            "type": "error",
-                            "message": f'❌ {result.get("error")}',
-                        }
+            if st.button("💾 Google Docs", key="note_confirm"):
+                result = create_google_doc(
+                    title=title,
+                    content=response,
+                    tags=tags,
+                )
+                if result.get("success"):
+                    doc_url = result.get("doc_url", "")
+                    flash_msg = f'✅ Document "{title}" créé dans votre Google Drive !'
+                    flash_detail = f'[Ouvrir le document]({doc_url})' if doc_url else None
+                    st.session_state.mcp_flash = {
+                        "type": "success",
+                        "message": flash_msg,
+                        "detail": flash_detail,
+                    }
                 else:
-                    # ── Sauvegarde locale Markdown (fallback) ──
-                    result = json.loads(_save_note(
-                        title=title,
-                        content=response,
-                        tags=tags,
-                    ))
-                    if result.get("success"):
-                        st.session_state.mcp_flash = {
-                            "type": "success",
-                            "message": f'✅ Note "{title}" sauvegardée !',
-                            "detail": f'`{result["path"]}`',
-                        }
-                    else:
-                        st.session_state.mcp_flash = {
-                            "type": "error",
-                            "message": f'❌ {result.get("error")}',
-                        }
+                    st.session_state.mcp_flash = {
+                        "type": "error",
+                        "message": f'❌ {result.get("error")}',
+                    }
                 st.session_state.mcp_action = None
                 st.rerun()
         with col2:
@@ -932,55 +887,6 @@ def _handle_mcp_action():
                 st.rerun()
         with col2:
             st.button("Annuler", key="email_cancel",
-                      on_click=lambda: st.session_state.update(mcp_action=None))
-
-    elif action == "task":
-        # ── Création d'une tâche ──
-        st.markdown("**✅ Créer une tâche d'apprentissage**")
-        task_title = st.text_input(
-            "Titre de la tâche",
-            value="À lire : réponse CryptoEdu",
-            key="task_title_input"
-        )
-        col_p, col_c = st.columns(2)
-        with col_p:
-            priority = st.selectbox(
-                "Priorité",
-                ["haute", "normale", "basse"],
-                index=1,
-                key="task_priority"
-            )
-        with col_c:
-            category = st.selectbox(
-                "Catégorie",
-                ["apprentissage", "sécurité", "achat", "fiscalité", "autre"],
-                key="task_category"
-            )
-        col1, col2 = st.columns([1, 4])
-        with col1:
-            if st.button("✅ Confirmer", key="task_confirm"):
-                result = json.loads(_add_task(
-                    title=task_title,
-                    description=response[:300],
-                    priority=priority,
-                    category=category,
-                ))
-                if result.get("success"):
-                    tasks_data = json.loads(_list_tasks(filter_done="a_faire"))
-                    nb = tasks_data.get("stats", {}).get("a_faire", "?")
-                    st.session_state.mcp_flash = {
-                        "type": "success",
-                        "message": f'✅ Tâche "{task_title}" créée ! ({nb} tâche(s) à faire)',
-                    }
-                else:
-                    st.session_state.mcp_flash = {
-                        "type": "error",
-                        "message": f'❌ {result.get("error")}',
-                    }
-                st.session_state.mcp_action = None
-                st.rerun()
-        with col2:
-            st.button("Annuler", key="task_cancel",
                       on_click=lambda: st.session_state.update(mcp_action=None))
 
     elif action == "quiz":

@@ -27,8 +27,8 @@ CryptoEdu Assistant concentre les meilleures sources éducatives dans un chatbot
 - **Cite ses sources** (AMF, Coinbase Learn, CoinGecko) grâce à un pipeline RAG
 - **Refuse les conseils d'investissement** automatiquement, via un système de guardrails à 3 couches
 - **Donne les prix en temps réel** (CoinGecko API) à titre informatif uniquement
-- **Propose des outils d'apprentissage** : notes sauvegardables, tâches de suivi, quiz interactif
-- **S'intègre à Google** (OAuth) : envoi de récapitulatifs par Gmail, sauvegarde dans Google Docs
+- **Propose un quiz interactif** pour tester ses connaissances (40 questions, 6 catégories)
+- **S'intègre à Google** (OAuth) : sauvegarde en Google Docs et envoi de récapitulatifs par Gmail
 
 ---
 
@@ -48,12 +48,13 @@ CryptoEdu Assistant concentre les meilleures sources éducatives dans un chatbot
 - **Guide premier achat** — Pas-à-pas du dépôt à la vérification
 - **Bonnes pratiques wallet** — Seed phrase, hot/cold wallet, erreurs courantes
 
-### 📋 MCP local (outils post-réponse)
+### 🎯 Outils post-réponse
 
-- **💾 Notes** — Sauvegarde en Markdown local ou Google Docs (si connecté)
-- **✅ Tâches** — Liste d'apprentissage avec priorités et catégories
-- **🧠 Quiz** — 40 questions, 6 catégories, 3 niveaux de difficulté
-- **📧 Email** — Récapitulatif de conversation envoyé par Gmail (OAuth Google)
+Sous chaque réponse de l'assistant, des boutons permettent d'agir :
+
+- **🧠 Quiz** — 40 questions, 6 catégories, 3 niveaux de difficulté (toujours disponible)
+- **💾 Google Docs** — Sauvegarde de la réponse dans le Google Drive de l'utilisateur (connexion Google requise)
+- **📧 Email** — Récapitulatif de la conversation envoyé par Gmail (connexion Google requise)
 
 ### 🛡️ Guardrails à 3 couches
 
@@ -66,15 +67,15 @@ CryptoEdu Assistant concentre les meilleures sources éducatives dans un chatbot
 - Connexion via Google (OAuth2 avec `streamlit-oauth`)
 - **📧 Gmail** : envoi du récapitulatif de conversation formaté HTML
 - **📄 Google Docs** : sauvegarde des notes dans le Drive de l'utilisateur
-- Fallback local automatique si l'utilisateur n'est pas connecté
+- Fallback gracieux : sans connexion Google, seul le quiz reste disponible
 
 ### 🎨 Interface Streamlit
 
 - Dark mode (Space Mono + DM Sans, palette orange/vert crypto)
 - Multi-sessions avec titres générés par LLM
-- Historique contextuel (3 derniers échanges pour les questions de suivi)
-- Mode développeur : badge modèle, injection de test MCP
-- Sidebar complète : conversations, profil Google, notes, tâches, liens officiels
+- Historique contextuel (6 derniers échanges pour les questions de suivi)
+- Mode développeur : badge modèle, injection de test
+- Sidebar complète : conversations, profil Google, liens officiels
 
 ---
 
@@ -83,16 +84,17 @@ CryptoEdu Assistant concentre les meilleures sources éducatives dans un chatbot
 ```
 ┌───────────────────────────────────────────────────────────────────┐
 │                        app.py (Streamlit)                         │
-│        Dark mode · Multi-sessions · Boutons MCP · OAuth Google    │
+│     Dark mode · Multi-sessions · Quiz · OAuth Google              │
 └────────────┬──────────────────────┬──────────────┬────────────────┘
              │                      │              │
              ▼                      ▼              ▼
 ┌─────────────────────────┐  ┌────────────┐  ┌──────────────────┐
-│   crypto_manager.py     │  │ MCP local  │  │ google_oauth.py  │
-│   Orchestrateur 6 outils│  │ Notes  .md │  │ OAuth2 + Gmail   │
-│   + guardrails.py       │  │ Tâches .json│  │ + Google Docs    │
-└────┬──────┬──────┬──────┘  │ Quiz  .json│  └──────────────────┘
-     │      │      │         └────────────┘
+│  core/                  │  │ mcp/       │  │ integrations/    │
+│  crypto_manager.py      │  │ mcp_quiz   │  │ google_oauth.py  │
+│  crypto_agents.py       │  │ (40 Q/6cat)│  │ OAuth2 + Gmail   │
+│  guardrails.py          │  └────────────┘  │ + Google Docs    │
+└────┬──────┬──────┬──────┘                  └──────────────────┘
+     │      │      │
      ▼      ▼      ▼
 ┌────────┐ ┌────────┐ ┌────────┐
 │Éducation│ │ Marché │ │Risques │
@@ -101,9 +103,10 @@ CryptoEdu Assistant concentre les meilleures sources éducatives dans un chatbot
     │          │
     ▼          ▼
 ┌────────┐ ┌─────────┐
-│ChromaDB│ │CoinGecko│
-│+ BM25  │ │  API    │
-└────────┘ └─────────┘
+│rag/    │ │CoinGecko│
+│ChromaDB│ │  API    │
+│+ BM25  │ └─────────┘
+└────────┘
 ```
 
 ### Cascade de modèles (double provider)
@@ -132,7 +135,7 @@ Le switch est automatique sur erreur, avec un cooldown de 2 minutes avant de ret
 | Données marché | CoinGecko API publique (sans clé) |
 | Interface | Streamlit (dark mode custom) |
 | OAuth | `streamlit-oauth` (Google OAuth2 → Gmail + Docs) |
-| MCP | `function_tool` local (notes, tâches, quiz) |
+| Quiz | `function_tool` local (40 questions, scoring par session) |
 
 ---
 
@@ -146,8 +149,8 @@ Le switch est automatique sur erreur, avec un cooldown de 2 minutes avant de ret
 ### 3 commandes pour lancer
 
 ```bash
-git clone https://github.com/<votre-username>/cryptoedu-assistant.git
-cd cryptoedu-assistant
+git clone https://github.com/lerat-yann/CryptoEdu_Assistant.git
+cd CryptoEdu_Assistant
 pip install -r requirements.txt
 ```
 
@@ -178,33 +181,46 @@ GOOGLE_CLIENT_SECRET=GOCSPX-xxxx
 GOOGLE_REDIRECT_URI=http://localhost:8501
 ```
 
-Sans ces clés, l'app fonctionne normalement — le bloc Google est simplement masqué.
+Sans ces clés, l'app fonctionne normalement — seul le quiz est disponible sous les réponses.
 
 ---
 
 ## Structure du projet
 
 ```
-cryptoedu-assistant/
-├── app.py                  # Interface Streamlit (dark mode, multi-sessions, OAuth, MCP)
-├── main.py                 # Interface CLI avec cascade automatique
-├── config.py               # Double provider Groq/OpenRouter, registre d'agents
-├── crypto_manager.py       # Orchestrateur — 6 outils, guardrails
-├── crypto_agents.py        # 3 agents + 3 outils déterministes + wrappers
-├── guardrails.py           # Filtrage 3 couches (mots-clés + LLM classifieur)
-├── rag_pipeline.py         # Pipeline RAG (LangChain + ChromaDB + BM25)
-├── google_oauth.py         # OAuth2 Google + Gmail API + Google Docs API
-├── mcp_notes.py            # MCP Notes — sauvegarde Markdown / Google Docs
-├── mcp_tasks.py            # MCP Tâches — apprentissage JSON
-├── mcp_quiz.py             # MCP Quiz — 40 questions, 6 catégories
-├── docs_crypto/            # Corpus RAG (7 documents PDF + TXT)
-├── notes_crypto/           # Notes sauvegardées (générées)
-├── tasks_crypto.json       # Tâches d'apprentissage (généré)
-├── quiz_crypto.json        # Questions du quiz (généré au 1er lancement)
-├── .env.example            # Template des clés API
-├── requirements.txt        # Dépendances Python
-├── assets/                 # Captures d'écran (à ajouter)
-└── README.md               # Ce fichier
+CryptoEdu_Assistant/
+├── app.py                          # Interface Streamlit (point d'entrée web)
+├── main.py                         # Interface CLI (point d'entrée terminal)
+├── config.py                       # Double provider Groq/OpenRouter, registre d'agents
+│
+├── core/                           # Logique métier (agents + orchestrateur)
+│   ├── crypto_agents.py            #   3 agents + 3 outils déterministes + wrappers
+│   ├── crypto_manager.py           #   Orchestrateur — 6 outils, guardrails
+│   └── guardrails.py               #   Filtrage 3 couches (mots-clés + LLM classifieur)
+│
+├── rag/                            # Pipeline RAG
+│   └── rag_pipeline.py             #   LangChain + ChromaDB + BM25 hybride
+│
+├── mcp/                            # Quiz interactif
+│   └── mcp_quiz.py                 #   40 questions, 6 catégories, 3 niveaux
+│
+├── integrations/                   # Services externes (Google OAuth2)
+│   └── google_oauth.py             #   Gmail API + Google Docs API
+│
+├── tests/                          # Tests
+│   ├── test_groq.py                #   Test connexion Groq
+│   └── test_groq_tools.py          #   Test tool-calling Groq
+│
+├── docs/                           # Documentation projet
+│   ├── GUIDE_OAUTH_GOOGLE.md       #   Guide intégration OAuth
+│   └── NOTES_DEVELOPPEMENT.md      #   Journal de développement
+│
+├── docs_crypto/                    # Corpus RAG (7 documents PDF + TXT)
+├── .streamlit/                     # Config Streamlit
+├── .env.example                    # Template des clés API
+├── requirements.txt                # Dépendances Python
+├── LICENSE                         # MIT
+└── README.md                       # Ce fichier
 ```
 
 ---
@@ -240,7 +256,7 @@ L'application est conçue pour ne **jamais crasher** face à l'utilisateur :
 - **Rate limit LLM (429)** → Switch automatique vers le provider suivant
 - **Modèle introuvable (404)** → Cascade vers le modèle disponible
 - **CoinGecko timeout** → Message d'erreur propre, pas de stacktrace Python
-- **OAuth non configuré** → Bloc Google masqué, fonctionnement local intact
+- **OAuth non configuré** → Seul le quiz reste disponible, pas de crash
 - **Corpus RAG vide** → Message indiquant d'ajouter des documents dans `docs_crypto/`
 
 ---
@@ -248,6 +264,7 @@ L'application est conçue pour ne **jamais crasher** face à l'utilisateur :
 ## Limites connues
 
 - **Free tier Groq/OpenRouter** : limité en requêtes par minute. La cascade double-provider atténue le problème.
+- **Contexte conversationnel limité** : pour rester dans les quotas gratuits, l'assistant envoie un résumé tronqué des échanges précédents au LLM. Sur les conversations longues, il peut ne pas se souvenir du contenu exact d'une réponse antérieure — dans ce cas, il le signale honnêtement plutôt que d'inventer (comportement anti-hallucination volontaire).
 - **Qualité variable** : les modèles gratuits peuvent parfois produire des réponses incomplètes.
 - **RAG dépendant du corpus** : la qualité des réponses éducatives dépend des documents dans `docs_crypto/`.
 - **OAuth Google en mode Test** : les utilisateurs doivent être ajoutés manuellement comme testeurs dans Google Cloud Console.
