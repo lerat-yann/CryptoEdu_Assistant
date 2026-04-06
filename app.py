@@ -430,7 +430,7 @@ def _clean_response(text: str) -> str:
     return text
 
 
-def _build_input_with_context(query: str, history: list, max_turns: int = 3) -> str:
+def _build_input_with_context(query: str, history: list, max_turns: int = 6) -> str:
     """
     Enrichit la question avec les N derniers échanges comme contexte.
     Permet les questions de suivi ("et pour ça ?", "tu peux résumer ?").

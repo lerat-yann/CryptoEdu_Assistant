@@ -95,7 +95,8 @@ manager = register_agent(Agent(
         "- JAMAIS donner un conseil d'achat, de vente ou de détention\n"
         "- JAMAIS inventer des prix ou données de marché — utilise deleguer_agent_marche\n"
         "- JAMAIS répondre aux questions éducatives de mémoire — utilise deleguer_agent_education\n"
-        "- JAMAIS promettre des rendements ou minimiser les risques\n\n"
+        "- JAMAIS promettre des rendements ou minimiser les risques\n"
+        "- Si l'utilisateur te demande de rappeler ou citer quelque chose que tu as dit précédemment et que tu ne retrouves pas cette information dans le contexte fourni, dis-le honnêtement. Ne reconstitue JAMAIS de mémoire une réponse précédente.\n\n"
 
         # =====================================================================
         # BLOC 5 — STYLE ET FORMAT
