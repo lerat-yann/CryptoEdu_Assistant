@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cp crypto_agents.py agents/)",
+      "Bash(cp crypto_manager.py agents/)",
+      "Bash(cp guardrails.py agents/)",
+      "Bash(cp rag_pipeline.py rag/)",
+      "Bash(cp mcp_notes.py mcp/)",
+      "Bash(python -c \"import config\")",
+      "Bash(python -c \"from rag.rag_pipeline import query_rag\")",
+      "Bash(python -c \"from mcp.mcp_notes import _save_note\")"
+    ]
+  }
+}

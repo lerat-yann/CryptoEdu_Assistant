@@ -22,7 +22,7 @@ import json
 import requests
 from agents import Agent, Runner, function_tool
 from config import model_main, register_agent
-from rag_pipeline import query_rag, init as init_rag
+from rag.rag_pipeline import query_rag, init as init_rag
 
 # ── Initialisation du RAG au chargement du module ────────────────────────────
 # Comme un bibliothécaire qui prépare ses rayons avant l'ouverture.

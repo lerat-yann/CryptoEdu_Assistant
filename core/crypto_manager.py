@@ -17,8 +17,8 @@ Adapté depuis manager.py du projet Agent_Cyber_Career_Compass.
 
 from agents import Agent
 from config import model_main, register_agent
-from guardrails import crypto_edu_guardrail
-from crypto_agents import (
+from core.guardrails import crypto_edu_guardrail
+from core.crypto_agents import (
     get_checklist_debutant,
     get_etapes_premier_achat,
     get_bonnes_pratiques_wallet,

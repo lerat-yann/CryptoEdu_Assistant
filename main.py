@@ -15,7 +15,7 @@ from agents import Runner
 from agents.exceptions import InputGuardrailTripwireTriggered
 from openai import RateLimitError, NotFoundError, BadRequestError, APIStatusError, APIConnectionError
 import config
-from crypto_manager import manager
+from core.crypto_manager import manager
 
 BANNER = """
 ╔═══════════════════════════════════════════════════════════════╗

@@ -1,6 +1,0 @@
-# ══════════════════════════════════════════════════════════════════════════════
-# CryptoEdu Assistant — Dépendance à AJOUTER à requirements.txt
-# ══════════════════════════════════════════════════════════════════════════════
-# Ajoutez cette ligne à votre requirements.txt existant :
-
-streamlit-oauth>=0.1.14

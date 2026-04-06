@@ -14,11 +14,11 @@ from agents import Agent, Runner
 from agents.exceptions import InputGuardrailTripwireTriggered
 from openai import RateLimitError, NotFoundError, BadRequestError, APIStatusError, APIConnectionError, AuthenticationError, PermissionDeniedError
 import config
-from crypto_manager import manager
-from mcp_notes import _save_note, _list_notes
-from mcp_tasks import _add_task, _list_tasks
-from mcp_quiz  import _get_question, _check_answer, _get_score, QUESTIONS as QUIZ_QUESTIONS
-from google_oauth import (
+from core.crypto_manager import manager
+from mcp.mcp_notes import _save_note, _list_notes
+from mcp.mcp_tasks import _add_task, _list_tasks
+from mcp.mcp_quiz  import _get_question, _check_answer, _get_score, QUESTIONS as QUIZ_QUESTIONS
+from integrations.google_oauth import (
     is_google_configured, is_user_logged_in, get_user_info,
     render_google_auth_sidebar, send_gmail_recap, create_google_doc,
 )
@@ -1062,7 +1062,7 @@ def _handle_mcp_action():
             with col1:
                 if st.button("🎲 Question !", key="quiz_start"):
                     # Reset automatique du score à chaque nouvelle partie
-                    from mcp_quiz import SCORES_FILE
+                    from mcp.mcp_quiz import SCORES_FILE
                     SCORES_FILE.write_text(
                         json.dumps({"total": 0, "correct": 0, "history": []},
                                    ensure_ascii=False, indent=2),
