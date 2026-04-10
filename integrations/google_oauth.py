@@ -21,6 +21,8 @@ Secrets requis (dans .env local ou Streamlit Cloud secrets) :
 import os
 import json
 import base64
+import urllib.parse
+import secrets as _secrets
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
@@ -629,15 +631,47 @@ def _markdown_to_plain_text(text: str) -> str:
 # WIDGET SIDEBAR — Rendu du bloc connexion Google
 # ══════════════════════════════════════════════════════════════════════════════
 
+def _build_google_auth_url() -> str:
+    """
+    Construit l'URL d'autorisation Google pour un redirect direct (sans popup).
+
+    Flux : l'utilisateur clique un lien → redirigé vers Google dans le même onglet
+    → Google redirige vers redirect_uri?code=... dans le même onglet
+    → même session Streamlit → échange serveur-side sans PKCE.
+
+    Le state est stocké en session_state pour vérification CSRF au retour.
+    """
+    state = _secrets.token_urlsafe(32)
+    st.session_state["google_oauth_state"] = state
+
+    params = {
+        "client_id": get_google_client_id(),
+        "redirect_uri": get_redirect_uri(),
+        "response_type": "code",
+        "scope": GOOGLE_SCOPES,
+        "state": state,
+        "access_type": "offline",
+        "prompt": "consent",
+    }
+    return GOOGLE_AUTHORIZE_URL + "?" + urllib.parse.urlencode(params)
+
+
 def render_google_auth_sidebar():
     """
     Affiche le bloc de connexion/déconnexion Google dans la sidebar.
-    Gère tout le flux OAuth2 : bouton → autorisation → stockage du token.
 
-    Retourne True si l'utilisateur est connecté, False sinon.
+    Flux OAuth (redirect direct, sans popup) :
+      1. Utilisateur clique le lien → Google auth dans le même onglet
+      2. Google redirige vers redirect_uri?code=... (même onglet = même session)
+      3. render_google_auth_sidebar() détecte ?code= EN PREMIER et échange
+         le code côté serveur (client_secret, sans PKCE)
+      4. Token sauvegardé → query params nettoyés → rerun → profil affiché
+
+    Pourquoi pas de PKCE : PKCE protège les apps qui ne peuvent pas garder un
+    secret côté client (SPA, mobile). Ici le client_secret est sur le serveur
+    Streamlit → Authorization Code Flow standard sans PKCE est approprié.
     """
     if not is_google_configured():
-        # Pas de credentials → on ne montre rien
         return False
 
     st.markdown("""
@@ -647,8 +681,48 @@ def render_google_auth_sidebar():
     </div>
     """, unsafe_allow_html=True)
 
+    # ── Phase 1 : Callback OAuth — AVANT tout autre rendu ────────────────────
+    # Quand Google redirige avec ?code=, on échange le code immédiatement.
+    # Le return early garantit qu'aucun autre composant ne tente un second échange.
+    if "code" in st.query_params and not is_user_logged_in():
+        code = st.query_params["code"]
+        returned_state = st.query_params.get("state", "")
+        expected_state = st.session_state.pop("google_oauth_state", None)
+
+        # Vérification CSRF (état généré lors du clic sur le lien)
+        if expected_state and returned_state != expected_state:
+            st.error("❌ Erreur de sécurité OAuth (state mismatch). Réessayez.")
+            st.query_params.clear()
+            return False
+
+        try:
+            token_resp = requests.post(
+                GOOGLE_TOKEN_URL,
+                data={
+                    "code": code,
+                    "client_id": get_google_client_id(),
+                    "client_secret": get_google_client_secret(),
+                    "redirect_uri": get_redirect_uri(),
+                    "grant_type": "authorization_code",
+                },
+                timeout=10,
+            )
+            if token_resp.status_code == 200:
+                st.session_state.google_token = {"token": token_resp.json()}
+                st.query_params.clear()
+                st.rerun()
+                return True
+            else:
+                err = token_resp.json().get("error_description", token_resp.text[:150])
+                st.error(f"❌ Erreur Google OAuth : {err}")
+        except Exception as e:
+            st.error(f"❌ Erreur réseau : {e}")
+
+        st.query_params.clear()
+        return False
+
+    # ── Phase 2 : Profil utilisateur connecté ────────────────────────────────
     if is_user_logged_in():
-        # ── Utilisateur connecté : afficher son profil ──
         user_info = get_user_info()
         if user_info:
             name = user_info.get("name", "Utilisateur")
@@ -681,33 +755,19 @@ def render_google_auth_sidebar():
 
         return True
 
-    else:
-        # ── Utilisateur non connecté : bouton OAuth ──
-        oauth2 = get_oauth2_component()
-        if not oauth2:
-            return False
+    # ── Phase 3 : Bouton de connexion (redirect direct, pas de popup) ─────────
+    auth_url = _build_google_auth_url()
+    st.link_button(
+        "Se connecter avec Google",
+        auth_url,
+        use_container_width=True,
+    )
 
-        redirect_uri = get_redirect_uri()
+    st.markdown(
+        "<span style='color: #6b7280; font-size: 0.72rem;'>"
+        "Connectez-vous pour envoyer des emails et sauvegarder dans Google Docs."
+        "</span>",
+        unsafe_allow_html=True
+    )
 
-        result = oauth2.authorize_button(
-            name="Se connecter avec Google",
-            redirect_uri=redirect_uri,
-            scope=GOOGLE_SCOPES,
-            key="google_oauth_button",
-            use_container_width=True,
-            pkce="S256",
-            extras_params={"access_type": "offline", "prompt": "consent"},
-        )
-
-        if result and "token" in result:
-            st.session_state.google_token = result
-            st.rerun()
-
-        st.markdown(
-            "<span style='color: #6b7280; font-size: 0.72rem;'>"
-            "Connectez-vous pour envoyer des emails et sauvegarder dans Google Docs."
-            "</span>",
-            unsafe_allow_html=True
-        )
-
-        return False
+    return False

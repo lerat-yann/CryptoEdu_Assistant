@@ -33,3 +33,5 @@ quiz_crypto.json
 quiz_scores.json
 tasks_crypto.json
 notes_crypto/
+
+.claude/

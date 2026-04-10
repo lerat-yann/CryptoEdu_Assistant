@@ -8,6 +8,7 @@ Lancement : streamlit run app.py
 import asyncio
 import json
 import re
+import traceback
 import uuid
 import streamlit as st
 from agents import Agent, Runner
@@ -19,7 +20,11 @@ from core.crypto_manager import manager
 from quiz.mcp_quiz  import _get_question, _check_answer, _get_score, QUESTIONS as QUIZ_QUESTIONS
 from integrations.google_oauth import (
     is_google_configured, is_user_logged_in, get_user_info,
-    render_google_auth_sidebar, send_gmail_recap, create_google_doc,
+    render_google_auth_sidebar,
+)
+from integrations.composio_google import (
+    is_composio_configured, get_mcp_url,
+    create_google_doc_via_composio, send_gmail_via_composio,
 )
 
 
@@ -371,6 +376,9 @@ if "quiz_prefs" not in st.session_state:
 
 if "quiz_asked_ids" not in st.session_state:
     st.session_state.quiz_asked_ids = set()  # IDs déjà posés dans cette session
+
+if "composio_mcp_url" not in st.session_state:
+    st.session_state.composio_mcp_url = None  # URL MCP Composio (cache par session)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -809,7 +817,7 @@ def _handle_mcp_action():
     st.markdown('<div class="mcp-panel">', unsafe_allow_html=True)
 
     if action == "note":
-        # ── Sauvegarde dans Google Docs ──
+        # ── Sauvegarde dans Google Docs (via Composio MCP) ──
         st.markdown("**💾 Sauvegarder dans Google Docs**")
 
         title = st.text_input(
@@ -825,25 +833,42 @@ def _handle_mcp_action():
         col1, col2 = st.columns([1, 4])
         with col1:
             if st.button("💾 Google Docs", key="note_confirm"):
-                result = create_google_doc(
-                    title=title,
-                    content=response,
-                    tags=tags,
-                )
-                if result.get("success"):
-                    doc_url = result.get("doc_url", "")
-                    flash_msg = f'✅ Document "{title}" créé dans votre Google Drive !'
-                    flash_detail = f'[Ouvrir le document]({doc_url})' if doc_url else None
-                    st.session_state.mcp_flash = {
-                        "type": "success",
-                        "message": flash_msg,
-                        "detail": flash_detail,
-                    }
-                else:
+                user_info = get_user_info()
+                user_email = user_info.get("email") if user_info else None
+                if not user_email:
                     st.session_state.mcp_flash = {
                         "type": "error",
-                        "message": f'❌ {result.get("error")}',
+                        "message": "❌ Impossible de récupérer l'email Google.",
                     }
+                else:
+                    # Récupérer ou mettre en cache l'URL MCP
+                    if not st.session_state.composio_mcp_url:
+                        st.session_state.composio_mcp_url = get_mcp_url(user_email)
+                    try:
+                        result = create_google_doc_via_composio(
+                            user_email=user_email,
+                            title=title,
+                            content=response,
+                            tags=tags,
+                            mcp_url=st.session_state.composio_mcp_url,
+                        )
+                        if result.get("success"):
+                            doc_url = result.get("doc_url", "")
+                            flash_msg = f'✅ Document "{title}" créé dans votre Google Drive !'
+                            flash_detail = f'[Ouvrir le document]({doc_url})' if doc_url else None
+                            st.session_state.mcp_flash = {
+                                "type": "success",
+                                "message": flash_msg,
+                                "detail": flash_detail,
+                            }
+                        else:
+                            st.session_state.mcp_flash = {
+                                "type": "error",
+                                "message": f'❌ {result.get("error")}',
+                            }
+                    except Exception as _e:
+                        st.error(f"Erreur détaillée : {_e}")
+                        st.code(traceback.format_exc())
                 st.session_state.mcp_action = None
                 st.rerun()
         with col2:
@@ -851,7 +876,7 @@ def _handle_mcp_action():
                       on_click=lambda: st.session_state.update(mcp_action=None))
 
     elif action == "email":
-        # ── Envoi du récapitulatif par email (Gmail) ──
+        # ── Envoi du récapitulatif par Gmail (via Composio MCP) ──
         st.markdown("**📧 Envoyer un récapitulatif par email**")
 
         user_info = get_user_info()
@@ -867,22 +892,33 @@ def _handle_mcp_action():
         col1, col2 = st.columns([1, 4])
         with col1:
             if st.button("📧 Envoyer", key="email_confirm"):
-                messages = _active_messages()
-                conv_title = _active_title()
-                result = send_gmail_recap(
-                    conversation_messages=messages,
-                    conversation_title=conv_title,
-                )
-                if result.get("success"):
-                    st.session_state.mcp_flash = {
-                        "type": "success",
-                        "message": f'📧 {result["message"]}',
-                    }
-                else:
+                if user_email == "?":
                     st.session_state.mcp_flash = {
                         "type": "error",
-                        "message": f'❌ {result.get("error")}',
+                        "message": "❌ Impossible de récupérer l'email Google.",
                     }
+                else:
+                    # Récupérer ou mettre en cache l'URL MCP
+                    if not st.session_state.composio_mcp_url:
+                        st.session_state.composio_mcp_url = get_mcp_url(user_email)
+                    messages = _active_messages()
+                    conv_title = _active_title()
+                    result = send_gmail_via_composio(
+                        user_email=user_email,
+                        conversation_messages=messages,
+                        conversation_title=conv_title,
+                        mcp_url=st.session_state.composio_mcp_url,
+                    )
+                    if result.get("success"):
+                        st.session_state.mcp_flash = {
+                            "type": "success",
+                            "message": f'📧 {result["message"]}',
+                        }
+                    else:
+                        st.session_state.mcp_flash = {
+                            "type": "error",
+                            "message": f'❌ {result.get("error")}',
+                        }
                 st.session_state.mcp_action = None
                 st.rerun()
         with col2:
