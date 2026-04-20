@@ -207,11 +207,7 @@ CryptoEdu_Assistant/
 ├── integrations/                   # Services externes (Google OAuth2)
 │   └── google_oauth.py             #   Gmail API + Google Docs API
 │
-├── tests/                          # Tests
-│   ├── test_groq.py                #   Test connexion Groq
-│   └── test_groq_tools.py          #   Test tool-calling Groq
-│
-├── docs/                           # Documentation projet
+├── guides/                         # Documentation projet
 │   ├── GUIDE_OAUTH_GOOGLE.md       #   Guide intégration OAuth
 │   └── NOTES_DEVELOPPEMENT.md      #   Journal de développement
 │

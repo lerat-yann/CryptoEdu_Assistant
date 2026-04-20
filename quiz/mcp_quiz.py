@@ -4,7 +4,8 @@ Jour 5 : CryptoEdu Assistant
 
 Permet de tester ses connaissances crypto via des quiz.
 Les questions sont stockées dans quiz_crypto.json (corpus statique extensible).
-Les scores sont sauvegardés dans quiz_scores.json.
+Les scores sont conservés en mémoire pour la durée de la session uniquement
+(remise à zéro au redémarrage du processus).
 
 Outils exposés :
   - get_question(category, difficulty) : retourne une question aléatoire
@@ -22,9 +23,17 @@ from datetime import datetime
 from pathlib import Path
 from agents import function_tool
 
-# ── Fichiers de stockage ──────────────────────────────────────────────────────
-QUIZ_FILE   = Path("./quiz_crypto.json")
-SCORES_FILE = Path("./quiz_scores.json")
+# ── Fichier de stockage du corpus ─────────────────────────────────────────────
+QUIZ_FILE = Path("./quiz_crypto.json")
+
+# ── Scores en mémoire (durée de vie = session Python) ─────────────────────────
+_SCORES: dict = {"total": 0, "correct": 0, "history": []}
+
+
+def reset_scores() -> None:
+    _SCORES["total"] = 0
+    _SCORES["correct"] = 0
+    _SCORES["history"] = []
 
 # ══════════════════════════════════════════════════════════════════════════════
 # CORPUS DE QUESTIONS (statique, extensible)
@@ -847,22 +856,6 @@ def _load_questions() -> list:
         return QUESTIONS
 
 
-def _load_scores() -> dict:
-    if not SCORES_FILE.exists():
-        return {"total": 0, "correct": 0, "history": []}
-    try:
-        return json.loads(SCORES_FILE.read_text(encoding="utf-8"))
-    except Exception:
-        return {"total": 0, "correct": 0, "history": []}
-
-
-def _save_scores(scores: dict):
-    SCORES_FILE.write_text(
-        json.dumps(scores, ensure_ascii=False, indent=2),
-        encoding="utf-8"
-    )
-
-
 # ══════════════════════════════════════════════════════════════════════════════
 # OUTILS MCP
 # ══════════════════════════════════════════════════════════════════════════════
@@ -932,12 +925,11 @@ def _check_answer(question_id: str, answer: str) -> str:
     answer_clean = answer.strip().upper()
     is_correct = (answer_clean == question["answer"])
 
-    # Mise à jour du score
-    scores = _load_scores()
-    scores["total"] += 1
+    # Mise à jour du score (en mémoire uniquement)
+    _SCORES["total"] += 1
     if is_correct:
-        scores["correct"] += 1
-    scores["history"].append({
+        _SCORES["correct"] += 1
+    _SCORES["history"].append({
         "question_id": question_id,
         "question": question["question"][:60] + "...",
         "user_answer": answer_clean,
@@ -945,10 +937,9 @@ def _check_answer(question_id: str, answer: str) -> str:
         "is_correct": is_correct,
         "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
     })
-    _save_scores(scores)
 
     # Score global
-    pct = round(scores["correct"] / scores["total"] * 100) if scores["total"] > 0 else 0
+    pct = round(_SCORES["correct"] / _SCORES["total"] * 100) if _SCORES["total"] > 0 else 0
 
     return json.dumps({
         "is_correct": is_correct,
@@ -957,8 +948,8 @@ def _check_answer(question_id: str, answer: str) -> str:
         "correct_answer": question["answer"],
         "explanation": question["explanation"],
         "score_global": {
-            "correct": scores["correct"],
-            "total": scores["total"],
+            "correct": _SCORES["correct"],
+            "total": _SCORES["total"],
             "pourcentage": f"{pct}%",
         },
     }, ensure_ascii=False, indent=2)
@@ -970,15 +961,13 @@ def _get_score() -> str:
     Returns:
         Score, progression et dernières questions répondues.
     """
-    scores = _load_scores()
-
-    if scores["total"] == 0:
+    if _SCORES["total"] == 0:
         return json.dumps({
             "message": "Aucun quiz effectué pour l'instant. Utilisez get_question() pour commencer !",
             "score": {"correct": 0, "total": 0, "pourcentage": "0%"},
         }, ensure_ascii=False)
 
-    pct = round(scores["correct"] / scores["total"] * 100)
+    pct = round(_SCORES["correct"] / _SCORES["total"] * 100)
 
     # Niveau en fonction du score
     if pct >= 80:
@@ -992,12 +981,12 @@ def _get_score() -> str:
 
     return json.dumps({
         "score": {
-            "correct": scores["correct"],
-            "total": scores["total"],
+            "correct": _SCORES["correct"],
+            "total": _SCORES["total"],
             "pourcentage": f"{pct}%",
             "niveau": niveau,
         },
-        "dernières_questions": scores["history"][-5:],
+        "dernières_questions": _SCORES["history"][-5:],
     }, ensure_ascii=False, indent=2)
 
 

@@ -913,12 +913,8 @@ def _handle_mcp_action():
             with col1:
                 if st.button("🎲 Question !", key="quiz_start"):
                     # Reset automatique du score à chaque nouvelle partie
-                    from quiz.mcp_quiz import SCORES_FILE
-                    SCORES_FILE.write_text(
-                        json.dumps({"total": 0, "correct": 0, "history": []},
-                                   ensure_ascii=False, indent=2),
-                        encoding="utf-8"
-                    )
+                    from quiz.mcp_quiz import reset_scores
+                    reset_scores()
                     st.session_state.quiz_asked_ids = set()
                     q = _get_unique_question(category=cat, difficulty=diff)
                     st.session_state.quiz_state = q
