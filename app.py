@@ -429,6 +429,29 @@ def _clean_response(text: str) -> str:
     return text
 
 
+_TOOL_CALL_PATTERNS = (
+    re.compile(r'"name"\s*:\s*"[A-Za-z_][\w\-]*"\s*,\s*"arguments"\s*:'),
+    re.compile(r'"arguments"\s*:\s*\{[^}]*"query"\s*:'),
+    re.compile(r'<tool_use\b'),
+    re.compile(r'<function_call\b'),
+    re.compile(r'<\|tool_call\|>'),
+    re.compile(r'^\s*\{\s*"name"\s*:\s*"', re.MULTILINE),
+)
+
+
+def _looks_like_raw_tool_call(text: str) -> bool:
+    """
+    Détecte si la réponse finale contient du JSON brut d'appel d'outil
+    (ex. `"_wallet", "arguments": {"query": "..."}`), signe que le LLM a
+    émis un tool call sous forme de texte au lieu de produire la vraie
+    réponse finale.
+    """
+    if not text:
+        return False
+    sample = text.strip()[:1000]
+    return any(p.search(sample) for p in _TOOL_CALL_PATTERNS)
+
+
 def _build_input_with_context(query: str, history: list, max_turns: int = 6) -> str:
     """
     Enrichit la question avec les N derniers échanges comme contexte.
@@ -456,7 +479,7 @@ async def _chat_async(query: str, history: list) -> tuple[str, str]:
         try:
             result = await Runner.run(manager, input=prompt_with_context, max_turns=20)
             response = result.final_output or ""
-            if not response.strip():
+            if not response.strip() or _looks_like_raw_tool_call(response):
                 switched = config.switch_to_next_model()
                 if not switched:
                     return "⚠️ Tous les modèles sont indisponibles. Réessayez dans 1-2 minutes.", "cascade_exhausted"

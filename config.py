@@ -88,7 +88,7 @@ _openrouter_model_fast = None
 
 if _groq_client:
     _groq_model_main = OpenAIChatCompletionsModel(
-        model="moonshotai/kimi-k2-instruct",
+        model="moonshotai/kimi-k2-instruct-0905",
         openai_client=_groq_client,
     )
     _groq_model_fast = OpenAIChatCompletionsModel(
