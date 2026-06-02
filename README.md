@@ -89,7 +89,7 @@ Sous chaque réponse de l'assistant, des boutons permettent d'agir :
              │                      │              │
              ▼                      ▼              ▼
 ┌─────────────────────────┐  ┌────────────┐  ┌──────────────────┐
-│  core/                  │  │ mcp/       │  │ integrations/    │
+│  core/                  │  │ quiz/      │  │ integrations/    │
 │  crypto_manager.py      │  │ mcp_quiz   │  │ google_oauth.py  │
 │  crypto_agents.py       │  │ (40 Q/6cat)│  │ OAuth2 + Gmail   │
 │  guardrails.py          │  └────────────┘  │ + Google Docs    │
@@ -115,7 +115,7 @@ L'assistant utilise **Groq** en priorité (rapide, bon tool-calling) avec **Open
 
 | Provider | Modèle | Rôle |
 |----------|--------|------|
-| **Groq** (principal) | `kimi-k2-instruct` | Main — rapide, tool-calling fiable |
+| **Groq** (principal) | `kimi-k2-instruct-0905` | Main — rapide, tool-calling fiable |
 | **Groq** (rapide) | `llama-3.1-8b-instant` | Classifieur guardrails, génération de titres |
 | **OpenRouter** (fallback) | `openrouter/free` | Secours si Groq rate-limité (429/403/400) |
 
@@ -128,14 +128,14 @@ Le switch est automatique sur erreur, avec un cooldown de 2 minutes avant de ret
 | Composant | Technologie |
 |-----------|-------------|
 | Agents | SDK `openai-agents` (orchestration, tool-calling, guardrails) |
-| LLM principal | **Groq** (kimi-k2-instruct + llama-3.1-8b-instant) |
+| LLM principal | **Groq** (kimi-k2-instruct-0905 + llama-3.1-8b-instant) |
 | LLM fallback | **OpenRouter** free tier |
 | RAG | LangChain + ChromaDB + BM25 (retriever hybride 50/50) |
 | Embeddings | HuggingFace `all-MiniLM-L6-v2` |
 | Données marché | CoinGecko API publique (sans clé) |
 | Interface | Streamlit (dark mode custom) |
 | OAuth | `streamlit-oauth` (Google OAuth2 → Gmail + Docs) |
-| Quiz | `function_tool` local (40 questions, scoring par session) |
+| Quiz | FastMCP (vrai serveur MCP, protocole MCP standard) |
 
 ---
 
@@ -201,8 +201,9 @@ CryptoEdu_Assistant/
 ├── rag/                            # Pipeline RAG
 │   └── rag_pipeline.py             #   LangChain + ChromaDB + BM25 hybride
 │
-├── mcp/                            # Quiz interactif
-│   └── mcp_quiz.py                 #   40 questions, 6 catégories, 3 niveaux
+├── quiz/                           # Quiz interactif
+│   ├── mcp_quiz.py                 #   40 questions, 6 catégories, 3 niveaux
+│   └── mcp_quiz_server.py          #   Vrai serveur MCP FastMCP
 │
 ├── integrations/                   # Services externes (Google OAuth2)
 │   └── google_oauth.py             #   Gmail API + Google Docs API
@@ -263,7 +264,7 @@ L'application est conçue pour ne **jamais crasher** face à l'utilisateur :
 - **Contexte conversationnel limité** : pour rester dans les quotas gratuits, l'assistant envoie un résumé tronqué des échanges précédents au LLM. Sur les conversations longues, il peut ne pas se souvenir du contenu exact d'une réponse antérieure — dans ce cas, il le signale honnêtement plutôt que d'inventer (comportement anti-hallucination volontaire).
 - **Qualité variable** : les modèles gratuits peuvent parfois produire des réponses incomplètes.
 - **RAG dépendant du corpus** : la qualité des réponses éducatives dépend des documents dans `docs_crypto/`.
-- **OAuth Google en mode Test** : les utilisateurs doivent être ajoutés manuellement comme testeurs dans Google Cloud Console.
+- **OAuth Google en mode Test** : les utilisateurs doivent être ajoutés manuellement comme testeurs dans Google Cloud Console. Gmail fonctionne uniquement avec des comptes Google, pas avec des adresses Hotmail, Yahoo ou autres fournisseurs.
 - **CoinGecko API publique** : limitée en nombre de requêtes et sans données historiques avancées.
 
 ---
